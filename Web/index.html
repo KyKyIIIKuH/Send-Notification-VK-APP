@@ -5,7 +5,7 @@
 <div id="sidebarRight">
     <div style="height:3%;"></div>
     <div id="block_users" style="display: none;">
-        <div id="name_block">Список пользователей</div>
+        <div id="name_block">РЎРїРёСЃРѕРє РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№</div>
         <div id="sidebar_content">
         <div id="sidebar_content_pr">
             <form action="" method="post" name="userlist" autocomplete="off">
@@ -17,16 +17,16 @@
 	</div>
     
     <div id="search_user" style="display: none;">
-        <div id="name_block">Поиск пользователя</div>
+        <div id="name_block">РџРѕРёСЃРє РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ</div>
             <div id="sidebar_content">
                 <div id="sidebar_content_pr">
                     <table border="0" width="100%">
                             <tbody><tr>
                                 <td>
-                                    <input class="form-control" id="search_uid_user_" style="width:98%;" placeholder="Ссылка на страницу пользователя vk">
+                                    <input class="form-control" id="search_uid_user_" style="width:98%;" placeholder="РЎСЃС‹Р»РєР° РЅР° СЃС‚СЂР°РЅРёС†Сѓ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ vk">
                                 </td>
                                 <td width="2%" align="center">
-                                    <button type="button" class="btn btn-primary" id="search_user_" onclick="javascript:search_user();"><span class="glyphicon glyphicon-search"></span> Поиск</button>
+                                    <button type="button" class="btn btn-primary" id="search_user_" onclick="javascript:search_user();"><span class="glyphicon glyphicon-search"></span> РџРѕРёСЃРє</button>
                                 </td>
                             </tr>
                         </tbody>
@@ -41,7 +41,7 @@
     </div>
     
     <div id="today_action_list" style="display: none;">
-        <div id="name_block">Спиок действий</div>
+        <div id="name_block">РЎРїРёРѕРє РґРµР№СЃС‚РІРёР№</div>
             <div id="sidebar_content">
                 <div id="sidebar_content_pr">
                     
@@ -50,85 +50,85 @@
     </div>
 </div>
 
-<!-- Добавить приложение -->
+<!-- Р”РѕР±Р°РІРёС‚СЊ РїСЂРёР»РѕР¶РµРЅРёРµ -->
 <script type="text/html" id="tmplAddNewApp">
 <form role="form" id="formAppAdd">
 	<input type="hidden" name="id" id="inputAppId" value="">
 	<div class="form-group">
-		<label for="title_app">Название приложения <small style="color:red;">(обязательно)</small></label>
-        <input type="text" name="title_app" id="title_app" class="form-control" placeholder="Название" maxlength="50">
+		<label for="title_app">РќР°Р·РІР°РЅРёРµ РїСЂРёР»РѕР¶РµРЅРёСЏ <small style="color:red;">(РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</small></label>
+        <input type="text" name="title_app" id="title_app" class="form-control" placeholder="РќР°Р·РІР°РЅРёРµ" maxlength="50">
     </div>
     <div class="form-group">
-    	<label for="id_app">ID приложения VK <small style="color:red;">(обязательно)</small></label>
-        <input type="text" name="id_app" id="id_app" class="form-control" placeholder="ID приложения" maxlength="10">
+    	<label for="id_app">ID РїСЂРёР»РѕР¶РµРЅРёСЏ VK <small style="color:red;">(РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</small></label>
+        <input type="text" name="id_app" id="id_app" class="form-control" placeholder="ID РїСЂРёР»РѕР¶РµРЅРёСЏ" maxlength="10">
     </div>
     <div class="form-group">
-    	<label for="key_app">Защищенный ключ <small style="color:red;">(обязательно)</small> <small style="color:green;">Будет использован только для отправки <b>Уведомлений</b></small></label>
-        <input type="text" name="key_app" id="key_app" class="form-control" placeholder="Защищенный ключ">
+    	<label for="key_app">Р—Р°С‰РёС‰РµРЅРЅС‹Р№ РєР»СЋС‡ <small style="color:red;">(РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</small> <small style="color:green;">Р‘СѓРґРµС‚ РёСЃРїРѕР»СЊР·РѕРІР°РЅ С‚РѕР»СЊРєРѕ РґР»СЏ РѕС‚РїСЂР°РІРєРё <b>РЈРІРµРґРѕРјР»РµРЅРёР№</b></small></label>
+        <input type="text" name="key_app" id="key_app" class="form-control" placeholder="Р—Р°С‰РёС‰РµРЅРЅС‹Р№ РєР»СЋС‡">
     </div>
-    <button type="button" class="btn btn-primary" id="add_remote_control" onclick="javascript:AddNewApp();">Добавить приложение</button>
+    <button type="button" class="btn btn-primary" id="add_remote_control" onclick="javascript:AddNewApp();">Р”РѕР±Р°РІРёС‚СЊ РїСЂРёР»РѕР¶РµРЅРёРµ</button>
 </form>
 </script>
-<!-- Добавить приложение -->
+<!-- Р”РѕР±Р°РІРёС‚СЊ РїСЂРёР»РѕР¶РµРЅРёРµ -->
 
-<!-- Настройки приложения -->
+<!-- РќР°СЃС‚СЂРѕР№РєРё РїСЂРёР»РѕР¶РµРЅРёСЏ -->
 <script type="text/html" id="tmplSettingsApp">
 <form role="form" id="formSettingsApp">
 	<input type="hidden" name="id" id="AppId_settings" value="<%- id %>">
     <div class="form-group">
-    	<label for="app_title_">Название приложения <small style="color:red;">(обязательно)</small></label>
-        <input type="text" name="app_title_" id="app_title_" value="<%- app_title_ %>" class="form-control" placeholder="Название" maxlength="50">
+    	<label for="app_title_">РќР°Р·РІР°РЅРёРµ РїСЂРёР»РѕР¶РµРЅРёСЏ <small style="color:red;">(РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</small></label>
+        <input type="text" name="app_title_" id="app_title_" value="<%- app_title_ %>" class="form-control" placeholder="РќР°Р·РІР°РЅРёРµ" maxlength="50">
     </div>
     <div class="form-group">
-    	<label for="app_id">ID приложения VK <small style="color:red;">(обязательно)</small></label>
-        <input type="text" name="app_id" id="app_id" value="<%- app_id %>" class="form-control" placeholder="ID приложения" maxlength="10">
+    	<label for="app_id">ID РїСЂРёР»РѕР¶РµРЅРёСЏ VK <small style="color:red;">(РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</small></label>
+        <input type="text" name="app_id" id="app_id" value="<%- app_id %>" class="form-control" placeholder="ID РїСЂРёР»РѕР¶РµРЅРёСЏ" maxlength="10">
     </div>
     <div class="form-group">
-    	<label for="app_secret_key">Защищенный ключ <small style="color:red;">(обязательно)</small> <small style="color:green;">Будет использован только для отправки <b>Уведомлений</b></small></label>
-        <input type="text" name="app_secret_key" id="app_secret_key" value="<%- app_secret_key %>" class="form-control" placeholder="Защищенный ключ">
+    	<label for="app_secret_key">Р—Р°С‰РёС‰РµРЅРЅС‹Р№ РєР»СЋС‡ <small style="color:red;">(РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</small> <small style="color:green;">Р‘СѓРґРµС‚ РёСЃРїРѕР»СЊР·РѕРІР°РЅ С‚РѕР»СЊРєРѕ РґР»СЏ РѕС‚РїСЂР°РІРєРё <b>РЈРІРµРґРѕРјР»РµРЅРёР№</b></small></label>
+        <input type="text" name="app_secret_key" id="app_secret_key" value="<%- app_secret_key %>" class="form-control" placeholder="Р—Р°С‰РёС‰РµРЅРЅС‹Р№ РєР»СЋС‡">
     </div>
     <hr/>
-    <button type="button" class="btn btn-success" id="sharing_app_" onclick="app.showDialog('Общий Доступ',app.getTemplate('Sharing'),buttons_sharing_app);setTimeout(function() { Sharing(); }, 500);">Общий Доступ</button>
-    <button type="button" class="btn btn-info" id="" style="" onclick="javascript:app.showDialog('Автоматическая отправка уведомлений',app.getTemplate('AutoSendMessage'),buttons_sharing_app);setTimeout(function() { autosendmessage(); }, 500);">Автоматическая отправка уведомлений</button>
-    <button type="button" class="btn btn-success" id="export_" onclick="javascript:app.showDialog('Экспорт',app.getTemplate('Export'),buttons_export);Export();;">Экспорт</button>
-    <button type="button" class="btn btn-success" id="export_" onclick="javascript:app.showDialog('Импорт',app.getTemplate('Import'),buttons_export);Import();;">Импорт</button>
+    <button type="button" class="btn btn-success" id="sharing_app_" onclick="app.showDialog('РћР±С‰РёР№ Р”РѕСЃС‚СѓРї',app.getTemplate('Sharing'),buttons_sharing_app);setTimeout(function() { Sharing(); }, 500);">РћР±С‰РёР№ Р”РѕСЃС‚СѓРї</button>
+    <button type="button" class="btn btn-info" id="" style="" onclick="javascript:app.showDialog('РђРІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ РѕС‚РїСЂР°РІРєР° СѓРІРµРґРѕРјР»РµРЅРёР№',app.getTemplate('AutoSendMessage'),buttons_sharing_app);setTimeout(function() { autosendmessage(); }, 500);">РђРІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ РѕС‚РїСЂР°РІРєР° СѓРІРµРґРѕРјР»РµРЅРёР№</button>
+    <button type="button" class="btn btn-success" id="export_" onclick="javascript:app.showDialog('Р­РєСЃРїРѕСЂС‚',app.getTemplate('Export'),buttons_export);Export();;">Р­РєСЃРїРѕСЂС‚</button>
+    <button type="button" class="btn btn-success" id="export_" onclick="javascript:app.showDialog('РРјРїРѕСЂС‚',app.getTemplate('Import'),buttons_export);Import();;">РРјРїРѕСЂС‚</button>
     <hr/>
-    <p><button type="button" class="btn btn-primary" id="save_app" onclick="javascript:SetInfo();;">Сохранить</button></p>
+    <p><button type="button" class="btn btn-primary" id="save_app" onclick="javascript:SetInfo();;">РЎРѕС…СЂР°РЅРёС‚СЊ</button></p>
     
 </form>
 </script>
-<!-- Настройки приложения -->
+<!-- РќР°СЃС‚СЂРѕР№РєРё РїСЂРёР»РѕР¶РµРЅРёСЏ -->
     
-<!-- Код для вставки -->
+<!-- РљРѕРґ РґР»СЏ РІСЃС‚Р°РІРєРё -->
 <script type="text/html" id="tmplCodeAddApp">
               <form role="form" id="formAppCode">
-                  <label>Этот код нужен для того чтобы регистрировать посещения приложения, и потом отправлять пользователям 'Уведомления'.</label>
-                  <p><a href="//yadi.sk/d/hzoM37VGJcx3y" target="_blank">Скачать JavaScript код</a></p>
-                  <p><a href="//yadi.sk/d/YB9chlLXNCPFa" target="_blank">Скачать AS3 код для Flash</a></p>
+                  <label>Р­С‚РѕС‚ РєРѕРґ РЅСѓР¶РµРЅ РґР»СЏ С‚РѕРіРѕ С‡С‚РѕР±С‹ СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊ РїРѕСЃРµС‰РµРЅРёСЏ РїСЂРёР»РѕР¶РµРЅРёСЏ, Рё РїРѕС‚РѕРј РѕС‚РїСЂР°РІР»СЏС‚СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏРј 'РЈРІРµРґРѕРјР»РµРЅРёСЏ'.</label>
+                  <p><a href="//yadi.sk/d/hzoM37VGJcx3y" target="_blank">РЎРєР°С‡Р°С‚СЊ JavaScript РєРѕРґ</a></p>
+                  <p><a href="//yadi.sk/d/YB9chlLXNCPFa" target="_blank">РЎРєР°С‡Р°С‚СЊ AS3 РєРѕРґ РґР»СЏ Flash</a></p>
               </form>
 </script>
-<!-- Код для вставки -->
+<!-- РљРѕРґ РґР»СЏ РІСЃС‚Р°РІРєРё -->
     
 <!-- VIP -->
 <script type="text/html" id="tmplVIP">
-<li>Автоматическая отправка уведомлений, с указанием времени и заранее написанным текстом.</li>
-<li>Экспорт и Импорт пользователей.</li>
-<li>Отправка уведомлений > 100 пользователям.</li>
-<li>Возможность удаления своего приложения из системы "Отправка Уведомлений".</li>
-<li>Убирается лимит на добавление приложений, в данный момент лимитом является 3 приложения.</li>
+<li>РђРІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ РѕС‚РїСЂР°РІРєР° СѓРІРµРґРѕРјР»РµРЅРёР№, СЃ СѓРєР°Р·Р°РЅРёРµРј РІСЂРµРјРµРЅРё Рё Р·Р°СЂР°РЅРµРµ РЅР°РїРёСЃР°РЅРЅС‹Рј С‚РµРєСЃС‚РѕРј.</li>
+<li>Р­РєСЃРїРѕСЂС‚ Рё РРјРїРѕСЂС‚ РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№.</li>
+<li>РћС‚РїСЂР°РІРєР° СѓРІРµРґРѕРјР»РµРЅРёР№ > 100 РїРѕР»СЊР·РѕРІР°С‚РµР»СЏРј.</li>
+<li>Р’РѕР·РјРѕР¶РЅРѕСЃС‚СЊ СѓРґР°Р»РµРЅРёСЏ СЃРІРѕРµРіРѕ РїСЂРёР»РѕР¶РµРЅРёСЏ РёР· СЃРёСЃС‚РµРјС‹ "РћС‚РїСЂР°РІРєР° РЈРІРµРґРѕРјР»РµРЅРёР№".</li>
+<li>РЈР±РёСЂР°РµС‚СЃСЏ Р»РёРјРёС‚ РЅР° РґРѕР±Р°РІР»РµРЅРёРµ РїСЂРёР»РѕР¶РµРЅРёР№, РІ РґР°РЅРЅС‹Р№ РјРѕРјРµРЅС‚ Р»РёРјРёС‚РѕРј СЏРІР»СЏРµС‚СЃСЏ 3 РїСЂРёР»РѕР¶РµРЅРёСЏ.</li>
 </script>
 <!-- VIP -->
     
-<!-- Общий доступ -->
+<!-- РћР±С‰РёР№ РґРѕСЃС‚СѓРї -->
 <script type="text/html" id="tmplSharing">
 <p>
 	<table border="0" width="100%">
         <tr>
             <td>
-                <input class="form-control" id="uid_user_remote_control" style="width:100%;" placeholder="Для добавления введите ссылку на страницу пользователя vk" disabled="disabled" />
+                <input class="form-control" id="uid_user_remote_control" style="width:100%;" placeholder="Р”Р»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ РІРІРµРґРёС‚Рµ СЃСЃС‹Р»РєСѓ РЅР° СЃС‚СЂР°РЅРёС†Сѓ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ vk" disabled="disabled" />
             </td>
             <td width="12%" align="center">
-                <button type="button" class="btn btn-primary" id="add_remote_control" onclick="javascript:add_Sharing_Remote_Control();" disabled="disabled">Добавить администратора</button>
+                <button type="button" class="btn btn-primary" id="add_remote_control" onclick="javascript:add_Sharing_Remote_Control();" disabled="disabled">Р”РѕР±Р°РІРёС‚СЊ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°</button>
             </td>
         </tr>
     </table>
@@ -136,47 +136,47 @@
 <div class="bot" style="width:98%; height: 350px; overflow: auto;">
 <table width="100%" class="CSSTableGenerator" id="sharing_user">
 <tr>
-    <td>Список пользователей</td>
+    <td>РЎРїРёСЃРѕРє РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№</td>
 </tr>
 </table>
 </div>
 </script>
-<!-- Общий доступ -->
+<!-- РћР±С‰РёР№ РґРѕСЃС‚СѓРї -->
 
-<!-- Информация о уведомлении -->
+<!-- РРЅС„РѕСЂРјР°С†РёСЏ Рѕ СѓРІРµРґРѕРјР»РµРЅРёРё -->
 <script type="text/html" id="tmplInfoSenderSelect">
-<label>Уведомление отправлено следующим пользователям: за <span id="time_send_"></span></label>
+<label>РЈРІРµРґРѕРјР»РµРЅРёРµ РѕС‚РїСЂР°РІР»РµРЅРѕ СЃР»РµРґСѓСЋС‰РёРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЏРј: Р·Р° <span id="time_send_"></span></label>
 <div class="bot" style="width:98%; height: 200px; overflow: auto;">
 	<table class="table table-hover" id="info_send_user_list" width="100%">
     </table>
 </div>
 <p><center><div class="paginator_sender"></div></center></p>
 </script>
-<!-- Информация о уведомлении -->
+<!-- РРЅС„РѕСЂРјР°С†РёСЏ Рѕ СѓРІРµРґРѕРјР»РµРЅРёРё -->
 
-<!-- Информация о посещениях пользователя -->
+<!-- РРЅС„РѕСЂРјР°С†РёСЏ Рѕ РїРѕСЃРµС‰РµРЅРёСЏС… РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ -->
 <script type="text/html" id="tmplInfoUserLogSelect">
-<label>Список посещений пользователя:</label>
+<label>РЎРїРёСЃРѕРє РїРѕСЃРµС‰РµРЅРёР№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ:</label>
 
 	<table class="table table-hover" id="info_user_logs_list" width="100%">
     </table>
 
 <p><center><div class="paginator_user_logs"></div></center></p>
 </script>
-<!-- Информация о посещениях пользователя -->
+<!-- РРЅС„РѕСЂРјР°С†РёСЏ Рѕ РїРѕСЃРµС‰РµРЅРёСЏС… РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ -->
 
-<!-- Экспорт -->
+<!-- Р­РєСЃРїРѕСЂС‚ -->
 <script type="text/html" id="tmplExport">
-<p>Экспорт данных</p>
-<button type="button" class="btn btn-primary" id="add_app" onclick="javascript:Export_Add();;">Выполнить</button>
+<p>Р­РєСЃРїРѕСЂС‚ РґР°РЅРЅС‹С…</p>
+<button type="button" class="btn btn-primary" id="add_app" onclick="javascript:Export_Add();;">Р’С‹РїРѕР»РЅРёС‚СЊ</button>
 <p>
 <table class="table table-hover" id="export_list">
       <thead>
         <tr>
           <th>#</th>
-          <th>Дата/Время</th>
-          <th>Выполнено</th>
-          <th>Статус</th>
+          <th>Р”Р°С‚Р°/Р’СЂРµРјСЏ</th>
+          <th>Р’С‹РїРѕР»РЅРµРЅРѕ</th>
+          <th>РЎС‚Р°С‚СѓСЃ</th>
           <th></th>
         </tr>
       </thead>
@@ -184,33 +184,33 @@
 </p>
 <p><a href="#" onclick="javacript:Export();;"><img align="right" src="//ploader.ru/vkapp/sender/images/file1336772549.png" width="24" height="24" /></a></p>
 </script>
-<!-- Экспорт -->
+<!-- Р­РєСЃРїРѕСЂС‚ -->
 
-<!-- Импорт -->
+<!-- РРјРїРѕСЂС‚ -->
 <script type="text/html" id="tmplImport">
-Скоро
+РЎРєРѕСЂРѕ
 <p><a href="#" onclick="javacript:Import();;"><img align="right" src="//ploader.ru/vkapp/sender/images/file1336772549.png" width="24" height="24" /></a></p>
 </script>
-<!-- Импорт -->
+<!-- РРјРїРѕСЂС‚ -->
 
-<!-- Автоматическая отправка уведомлений -->
+<!-- РђРІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ РѕС‚РїСЂР°РІРєР° СѓРІРµРґРѕРјР»РµРЅРёР№ -->
 <script type="text/html" id="tmplAutoSendMessage">
 <p>
 <table width="98%" border="0">
 	<tr>
-		<td>Сообщение:</td>
+		<td>РЎРѕРѕР±С‰РµРЅРёРµ:</td>
         <td>
         	<textarea name="message_auto_sender" id="message_auto_sender" cols="50" rows="5" wrap="virtual" maxlength="253" style="resize: none;"></textarea>
    	 	</td>
     </tr>
     <tr>
-    	<td>Дата/Время:</td>
-        <td><input type="text" value="" id="datetimepicker" placeholder="Дата/Время"/></td>
+    	<td>Р”Р°С‚Р°/Р’СЂРµРјСЏ:</td>
+        <td><input type="text" value="" id="datetimepicker" placeholder="Р”Р°С‚Р°/Р’СЂРµРјСЏ"/></td>
     </tr>
     <tr>
         <td></td>
         <td>
-            <button id="sender_auto_message" name="sender_auto_message" type="button" class="btn btn-primary" onclick="javascript:autoaddaction();">Добавить задание</button> <span>Осталось символов: <span id="message_auto_length">253</span></span>
+            <button id="sender_auto_message" name="sender_auto_message" type="button" class="btn btn-primary" onclick="javascript:autoaddaction();">Р”РѕР±Р°РІРёС‚СЊ Р·Р°РґР°РЅРёРµ</button> <span>РћСЃС‚Р°Р»РѕСЃСЊ СЃРёРјРІРѕР»РѕРІ: <span id="message_auto_length">253</span></span>
         </td>
     </tr>
 </table>
@@ -220,29 +220,29 @@
       <thead>
         <tr>
           <th>#</th>
-          <th width="20%">Сообщение</th>
-          <th>Дата/Время старта</th>
-          <th>Выполнено</th>
-          <th>Статус</th>
+          <th width="20%">РЎРѕРѕР±С‰РµРЅРёРµ</th>
+          <th>Р”Р°С‚Р°/Р’СЂРµРјСЏ СЃС‚Р°СЂС‚Р°</th>
+          <th>Р’С‹РїРѕР»РЅРµРЅРѕ</th>
+          <th>РЎС‚Р°С‚СѓСЃ</th>
         </tr>
       </thead>
 </table>
 </p>
 <p><a href="#" onclick="javacript:autosendmessage();;"><img align="right" src="//ploader.ru/vkapp/sender/images/file1336772549.png" width="24" height="24" /></a></p>
 </script>
-<!-- Автоматическая отправка уведомлений -->
+<!-- РђРІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ РѕС‚РїСЂР°РІРєР° СѓРІРµРґРѕРјР»РµРЅРёР№ -->
     
     <p id="open_app_" style="display: none;"></p>
     <p>
         <span id="loading_list_app"></span>
         <select id="apps">
         </select>
-    	<button type="button" class="btn btn-primary" id="add_app" onclick="javascript:reset_data('addnewapp');">Добавить приложение</button>
-        <button type="button" class="btn btn-primary" id="settings_app_" style="display: none;" onclick="javascript:GetInfo($('#apps').val());;">Настройки</button>
-        <button type="button" class="btn btn-primary" id="code_add_your_app_" style="display: none;">Код для вставки</button>
+    	<button type="button" class="btn btn-primary" id="add_app" onclick="javascript:reset_data('addnewapp');">Р”РѕР±Р°РІРёС‚СЊ РїСЂРёР»РѕР¶РµРЅРёРµ</button>
+        <button type="button" class="btn btn-primary" id="settings_app_" style="display: none;" onclick="javascript:GetInfo($('#apps').val());;">РќР°СЃС‚СЂРѕР№РєРё</button>
+        <button type="button" class="btn btn-primary" id="code_add_your_app_" style="display: none;">РљРѕРґ РґР»СЏ РІСЃС‚Р°РІРєРё</button>
     </p>
     
-    <!---- Главная --->    
+    <!---- Р“Р»Р°РІРЅР°СЏ --->    
     <div id="added_app_not_function" style="display: none;">
         <div id="content">
             <div id="name_news"></div>
@@ -252,7 +252,7 @@
                     <table id="send_list_app" width="100%" border="0">
                         <tr>
                             <td>
-                                <b style="color:red;">Полный функционал приложения доступен только для тех кто добавил своё приложение или у кого есть общий доступ к приложению.</b>
+                                <b style="color:red;">РџРѕР»РЅС‹Р№ С„СѓРЅРєС†РёРѕРЅР°Р» РїСЂРёР»РѕР¶РµРЅРёСЏ РґРѕСЃС‚СѓРїРµРЅ С‚РѕР»СЊРєРѕ РґР»СЏ С‚РµС… РєС‚Рѕ РґРѕР±Р°РІРёР» СЃРІРѕС‘ РїСЂРёР»РѕР¶РµРЅРёРµ РёР»Рё Сѓ РєРѕРіРѕ РµСЃС‚СЊ РѕР±С‰РёР№ РґРѕСЃС‚СѓРї Рє РїСЂРёР»РѕР¶РµРЅРёСЋ.</b>
                             </td>
                         </tr>
                     </table>
@@ -264,19 +264,19 @@
     
     <div id="big_loading"><center><img src="//loader.pdata.ru//img/loading.gif" /></center></div>
     
-    <!---- Статистика --->
+    <!---- РЎС‚Р°С‚РёСЃС‚РёРєР° --->
     
     <div id="static_app" style="display: none;">
         <div id="content">
-            <div id="name_news">Статистика</div>
+            <div id="name_news">РЎС‚Р°С‚РёСЃС‚РёРєР°</div>
             <div id="news_small">
                 <div style="margin-left: 7px;">
                     <br/>
                     <table class="CSSTableGenerator" width="100%" border="1">
                         <tr>
-                            <td>Сегодня Доступно Уведомлений</td>
-                            <td>Статус следующей отправки</td>
-                            <td>Всего пользователей</td>
+                            <td>РЎРµРіРѕРґРЅСЏ Р”РѕСЃС‚СѓРїРЅРѕ РЈРІРµРґРѕРјР»РµРЅРёР№</td>
+                            <td>РЎС‚Р°С‚СѓСЃ СЃР»РµРґСѓСЋС‰РµР№ РѕС‚РїСЂР°РІРєРё</td>
+                            <td>Р’СЃРµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№</td>
                         </tr>
                         <tr>
                             <td><span id="send_count_"><p><img src='//vk.com/images/upload.gif'/></p></span></td>
@@ -290,13 +290,13 @@
         </div>
     </div>
     
-    <!---- Статистика --->
+    <!---- РЎС‚Р°С‚РёСЃС‚РёРєР° --->
     
-    <!---- Главная --->
+    <!---- Р“Р»Р°РІРЅР°СЏ --->
     
     <div id="info_app" style="display: none;">
         <div id="content">
-            <div id="name_news">Отправка уведомления</div>
+            <div id="name_news">РћС‚РїСЂР°РІРєР° СѓРІРµРґРѕРјР»РµРЅРёСЏ</div>
             <div id="news_small">
                 <div style="margin-left: 7px;">
                     <br/>
@@ -304,20 +304,20 @@
                     <table width="98%" border="0">
                         <tr>
                             <td>
-                                Сообщение:
+                                РЎРѕРѕР±С‰РµРЅРёРµ:
                             </td>
                             <td>
-                                <div id="working" style="display: none;color:green;">Отправка работает!</div>
-                                <p><button id="sender_uids_select" name="sender_uids_select" type="button" class="btn btn-success" onclick="javascript:;">Выбрать кому отправить (скоро)</button></p>
-                                <p>В данный момент <b>Уведомление</b> отправляется всем!</p>
+                                <div id="working" style="display: none;color:green;">РћС‚РїСЂР°РІРєР° СЂР°Р±РѕС‚Р°РµС‚!</div>
+                                <p><button id="sender_uids_select" name="sender_uids_select" type="button" class="btn btn-success" onclick="javascript:;">Р’С‹Р±СЂР°С‚СЊ РєРѕРјСѓ РѕС‚РїСЂР°РІРёС‚СЊ (СЃРєРѕСЂРѕ)</button></p>
+                                <p>Р’ РґР°РЅРЅС‹Р№ РјРѕРјРµРЅС‚ <b>РЈРІРµРґРѕРјР»РµРЅРёРµ</b> РѕС‚РїСЂР°РІР»СЏРµС‚СЃСЏ РІСЃРµРј!</p>
                                 <textarea name="message_sender" id="message_sender" cols="60" rows="5" wrap="virtual" maxlength="253" style="resize: none;"></textarea>
                             </td>
                         </tr>
                         <tr>
                             <td></td>
                             <td>
-                                <button id="sender_message" name="sender_message" type="button" class="btn btn-primary" onclick="javascript:sender_send();"><span class="glyphicon glyphicon-envelope"></span> Отправить</button>
-                                <span>Осталось символов: <span id="message_length"></span></span>
+                                <button id="sender_message" name="sender_message" type="button" class="btn btn-primary" onclick="javascript:sender_send();"><span class="glyphicon glyphicon-envelope"></span> РћС‚РїСЂР°РІРёС‚СЊ</button>
+                                <span>РћСЃС‚Р°Р»РѕСЃСЊ СЃРёРјРІРѕР»РѕРІ: <span id="message_length"></span></span>
                             </td>
                         </tr>
                     </table>
@@ -327,15 +327,15 @@
         </div>
     </div>
     
-    <!---- Список отправленных уведомлений --->
+    <!---- РЎРїРёСЃРѕРє РѕС‚РїСЂР°РІР»РµРЅРЅС‹С… СѓРІРµРґРѕРјР»РµРЅРёР№ --->
     <div id="info_send_list" style="display: none;">
         <div id="content">
-            <div id="name_news">Список отправленных уведомлений</div>
+            <div id="name_news">РЎРїРёСЃРѕРє РѕС‚РїСЂР°РІР»РµРЅРЅС‹С… СѓРІРµРґРѕРјР»РµРЅРёР№</div>
             <div id="news_small">
                 <div style="margin-left: 7px;">
                     <br/>
                     <table class="CSSTableGenerator" width="100%" border="1">
-                        <tr><td colspan="4"><center>Топ 3 Отправленных Уведомления</center></td></tr>
+                        <tr><td colspan="4"><center>РўРѕРї 3 РћС‚РїСЂР°РІР»РµРЅРЅС‹С… РЈРІРµРґРѕРјР»РµРЅРёСЏ</center></td></tr>
                     </table>
                     <table class="CSSTableGenerator" id="send_list_app_" width="100%" border="1">
                     </table>
@@ -344,12 +344,12 @@
             </div>
         </div>
     </div>
-    <!---- Список отправленных уведомлений --->
+    <!---- РЎРїРёСЃРѕРє РѕС‚РїСЂР°РІР»РµРЅРЅС‹С… СѓРІРµРґРѕРјР»РµРЅРёР№ --->
     
-    <!---- Список посещений --->
+    <!---- РЎРїРёСЃРѕРє РїРѕСЃРµС‰РµРЅРёР№ --->
     <div id="info_visits_list" style="display: none;">
         <div id="content">
-            <div id="name_news">Список посещений</div>
+            <div id="name_news">РЎРїРёСЃРѕРє РїРѕСЃРµС‰РµРЅРёР№</div>
             <div id="news_small">
                 <div style="margin-left: 7px;">
                     <br/>
@@ -364,7 +364,7 @@
             </div>
         </div>
     </div>
-    <!---- Список посещений --->
+    <!---- РЎРїРёСЃРѕРє РїРѕСЃРµС‰РµРЅРёР№ --->
     
     <div class="clear"></div>
     <div id="footer" style="color:black;">
@@ -372,10 +372,10 @@
             <tr>
                 <td align="left">
                     <a target="_blank" href='//host-tracker.com/ru/website-monitoring-statistics/9952629/lvuc/'><img
-                    width='80' height='15' border='0' alt='службы мониторинга серверов' rel='nofollow'
+                    width='80' height='15' border='0' alt='СЃР»СѓР¶Р±С‹ РјРѕРЅРёС‚РѕСЂРёРЅРіР° СЃРµСЂРІРµСЂРѕРІ' rel='nofollow'
                     src="//ext.host-tracker.com/uptime-img/?s=15&amp;t=9952629&amp;m=00.09&amp;p=Total&amp;src=lvuc" /></a>
                 </td>
-                <td align="right">Отправка Уведомлений <p> <a href="//vk.com/kykyiiikuh" target="_blank">Базаров  Денис</a> © 2014</p></td>
+                <td align="right">РћС‚РїСЂР°РІРєР° РЈРІРµРґРѕРјР»РµРЅРёР№ <p> <a href="//vk.com/kykyiiikuh" target="_blank">Р‘Р°Р·Р°СЂРѕРІ  Р”РµРЅРёСЃ</a> В© 2014</p></td>
             </tr>
         </table>
     </div>
