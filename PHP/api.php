@@ -73,7 +73,7 @@ if (isset($_POST["action"])) {
             if (valid_app($id_app) == 0)
                 return;
 
-            $VK = new vkapi("4181067", "aDMaaUO5TQVCskqoGot2");
+            $VK = new vkapi("4181067", "aAMaaUO8TQVCskq6Got7");
             $resp = $VK->api('users.get', array('user_ids' => $uid, 'fields' =>'first_name, last_name'));
             $xml = simplexml_load_string($resp);
             foreach ($xml->user as $movie) {
