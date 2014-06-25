@@ -2,14 +2,14 @@ Array.prototype.IS_ARRAY = true;
 
 var host_server = "//ploader.ru/sender/api/load.html", vars;
 var host_server_js = "//ploader.ru/vkapp/sender/js/sender";
-var buttons_add_app={'select':{label: 'Закрыть', callback: function(){
-}}}, buttons_sharing_app={'cancel':{label: 'Закрыть', callback: function(){
+var buttons_add_app={'select':{label: 'Р—Р°РєСЂС‹С‚СЊ', callback: function(){
+}}}, buttons_sharing_app={'cancel':{label: 'Р—Р°РєСЂС‹С‚СЊ', callback: function(){
 }}};
 
-var buttons_default={'select':{label: 'Закрыть', callback: function(){
+var buttons_default={'select':{label: 'Р—Р°РєСЂС‹С‚СЊ', callback: function(){
 }}};
 
-var buttons_export={'select':{label: 'Закрыть', callback: function(){
+var buttons_export={'select':{label: 'Р—Р°РєСЂС‹С‚СЊ', callback: function(){
 }}};
 
 var control_remote_ = 0;
@@ -18,33 +18,33 @@ app.run=function(){
     
     RegisterVisits(); LoadApp();
     
-    //Модальные окна
+    //РњРѕРґР°Р»СЊРЅС‹Рµ РѕРєРЅР°
     
     $('#add_app').on('click', function(){
-        app.showDialog('Добавить приложение',app.getTemplate('AddNewApp'),buttons_add_app); }
+        app.showDialog('Р”РѕР±Р°РІРёС‚СЊ РїСЂРёР»РѕР¶РµРЅРёРµ',app.getTemplate('AddNewApp'),buttons_add_app); }
 	);
     
     $('#settings_app_').on('click', function(){
         if(control_remote_ == 0)
         {
-            var buttons={'delete_app':{label: 'Удалить приложение', callback: function(){
-                app.showConfirm("Вы точно хотите удалить приложение '" + $.trim(vars.app_title_) + "'?", function(result){
+            var buttons={'delete_app':{label: 'РЈРґР°Р»РёС‚СЊ РїСЂРёР»РѕР¶РµРЅРёРµ', callback: function(){
+                app.showConfirm("Р’С‹ С‚РѕС‡РЅРѕ С…РѕС‚РёС‚Рµ СѓРґР°Р»РёС‚СЊ РїСЂРёР»РѕР¶РµРЅРёРµ '" + $.trim(vars.app_title_) + "'?", function(result){
                     if(result == true)
                         delete_app();
                 });
-            }},'close':{label: 'Закрыть', callback: function(){
+            }},'close':{label: 'Р—Р°РєСЂС‹С‚СЊ', callback: function(){
                 
             }}};
             
-            app.showDialog('Настройки приложения',app.getTemplate('SettingsApp', vars),buttons);
+            app.showDialog('РќР°СЃС‚СЂРѕР№РєРё РїСЂРёР»РѕР¶РµРЅРёСЏ',app.getTemplate('SettingsApp', vars),buttons);
         } else
-            app.showAlert("В Удалённом доступе запрещены настройки приложения.");
+            app.showAlert("Р’ РЈРґР°Р»С‘РЅРЅРѕРј РґРѕСЃС‚СѓРїРµ Р·Р°РїСЂРµС‰РµРЅС‹ РЅР°СЃС‚СЂРѕР№РєРё РїСЂРёР»РѕР¶РµРЅРёСЏ.");
     });
     
     $('#code_add_your_app_').on('click', function(){
-        var buttons={'select':{label: 'Закрыть', callback: function(){
+        var buttons={'select':{label: 'Р—Р°РєСЂС‹С‚СЊ', callback: function(){
         }}};
-        app.showDialog('Код для вставки',app.getTemplate('CodeAddApp'),buttons); }
+        app.showDialog('РљРѕРґ РґР»СЏ РІСЃС‚Р°РІРєРё',app.getTemplate('CodeAddApp'),buttons); }
 	);
     
     $('#loading_list_app').html("<p><img src='//vk.com/images/upload.gif'/></p>");
@@ -53,7 +53,7 @@ app.run=function(){
     
     //document.getElementById("sender_message").setAttribute("disabled", "disabled");
     
-    //Поменяли приложение вывод информации
+    //РџРѕРјРµРЅСЏР»Рё РїСЂРёР»РѕР¶РµРЅРёРµ РІС‹РІРѕРґ РёРЅС„РѕСЂРјР°С†РёРё
     $('#apps').change(function(e)
                                 {                                    
                                     $("#sender_status_").html("");
@@ -74,19 +74,19 @@ app.run=function(){
                                     for(var i = 0, j = sel.options.length; i < j; ++i) {
                                         if(sel.options[i].value === val) {
                                             app.setUserVar('selected_app',sel.options[i].value, function(data){
-                                                if(data.response) console.log("[APP] Selected Изменения сохранены");
-                                                else console.log("[APP] Selected Изменения не сохранены");
+                                                if(data.response) console.log("[APP] Selected РР·РјРµРЅРµРЅРёСЏ СЃРѕС…СЂР°РЅРµРЅС‹");
+                                                else console.log("[APP] Selected РР·РјРµРЅРµРЅРёСЏ РЅРµ СЃРѕС…СЂР°РЅРµРЅС‹");
                                             });
                                             
                                             break;
                                         }
                                     }
-                                    console.log("[APP] Приложение изменено");
+                                    console.log("[APP] РџСЂРёР»РѕР¶РµРЅРёРµ РёР·РјРµРЅРµРЅРѕ");
                                 });
     app.setAutoSize(1000, null, 1000);
 };
 
-//Статус следующей отправки
+//РЎС‚Р°С‚СѓСЃ СЃР»РµРґСѓСЋС‰РµР№ РѕС‚РїСЂР°РІРєРё
 function send_time_last_(last_sender_datetime_) {
         var url = "//ploader.ru/vkapp/sender/js/countdown/jquery.plugin.js";
         $.getScript( url, function() {
@@ -113,7 +113,7 @@ function send_time_last_(last_sender_datetime_) {
                                 var finish_ = $('#send_time_last').text().split(':');
                                 if(finish_[0] == "0" && finish_[1] == "0" && finish_[2] == "0") {
                                     $('#send_time_last').countdown('destroy'); 
-                                    $('#send_time_last').html('<span class="label label-success"><b>Отправка разрешена!</b></span>');
+                                    $('#send_time_last').html('<span class="label label-success"><b>РћС‚РїСЂР°РІРєР° СЂР°Р·СЂРµС€РµРЅР°!</b></span>');
                                 }
                             }, 1000);
                         } else {
@@ -126,7 +126,7 @@ function send_time_last_(last_sender_datetime_) {
         });
 }
 
-//Проверяем сколько осталось символов
+//РџСЂРѕРІРµСЂСЏРµРј СЃРєРѕР»СЊРєРѕ РѕСЃС‚Р°Р»РѕСЃСЊ СЃРёРјРІРѕР»РѕРІ
 $(function()
 {
     var maxLength = $('#message_sender').attr('maxlength');        //(1)
@@ -140,7 +140,7 @@ $(function()
     });
 });
 
-//Первый запуск выбор первого приложения в списке
+//РџРµСЂРІС‹Р№ Р·Р°РїСѓСЃРє РІС‹Р±РѕСЂ РїРµСЂРІРѕРіРѕ РїСЂРёР»РѕР¶РµРЅРёСЏ РІ СЃРїРёСЃРєРµ
 function fisrt_start()
 {
     $('#big_loading').html('<center><img src="//loader.pdata.ru//img/loading.gif" /></center>');
@@ -161,11 +161,11 @@ function fisrt_start()
         document.getElementById("info_send_list").style.display = '';
         document.getElementById("info_visits_list").style.display = '';
         
-        console.log("[APP] Приложение загружено");
+        console.log("[APP] РџСЂРёР»РѕР¶РµРЅРёРµ Р·Р°РіСЂСѓР¶РµРЅРѕ");
     }
 }
 
-//Отправка уведомления
+//РћС‚РїСЂР°РІРєР° СѓРІРµРґРѕРјР»РµРЅРёСЏ
 var sCurrent = 0;
 
 function sender_send() {
@@ -173,7 +173,7 @@ function sender_send() {
     var sFinish = parseInt($('#count_users_all').text());
     
     if(sFinish == 0) {
-        app.showAlert("Уведомление не может быть отправлено, т.к в вашем приложении нету пользователей.");
+        app.showAlert("РЈРІРµРґРѕРјР»РµРЅРёРµ РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РѕС‚РїСЂР°РІР»РµРЅРѕ, С‚.Рє РІ РІР°С€РµРј РїСЂРёР»РѕР¶РµРЅРёРё РЅРµС‚Сѓ РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№.");
         return false;
     }
     
@@ -193,7 +193,7 @@ function sender_send() {
         document.getElementById("message_sender").removeAttribute("disabled", "disabled");
         document.getElementById("apps").removeAttribute("disabled", "disabled");
         
-        $("#sender_status_").html("<span style='color:green;'>Статус: Отправка уведомления завершена.</span>");
+        $("#sender_status_").html("<span style='color:green;'>РЎС‚Р°С‚СѓСЃ: РћС‚РїСЂР°РІРєР° СѓРІРµРґРѕРјР»РµРЅРёСЏ Р·Р°РІРµСЂС€РµРЅР°.</span>");
         $("#sender_status_").html($("#sender_status_").html() +
                                   '<div class="progress progress-striped">' +
                                   '<div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">'+
@@ -214,7 +214,7 @@ function sender_send() {
         document.getElementById("sender_message").removeAttribute("disabled", "disabled");
         document.getElementById("message_sender").removeAttribute("disabled", "disabled");
         document.getElementById("apps").removeAttribute("disabled", "disabled");
-        app.showAlert("Вы не выбрали приложение.");
+        app.showAlert("Р’С‹ РЅРµ РІС‹Р±СЂР°Р»Рё РїСЂРёР»РѕР¶РµРЅРёРµ.");
         return;
     }
     
@@ -223,7 +223,7 @@ function sender_send() {
         document.getElementById("sender_message").removeAttribute("disabled", "disabled");
         document.getElementById("message_sender").removeAttribute("disabled", "disabled");
         document.getElementById("apps").removeAttribute("disabled", "disabled");
-        app.showAlert("Напишите сообщение для отправки уведомления.");
+        app.showAlert("РќР°РїРёС€РёС‚Рµ СЃРѕРѕР±С‰РµРЅРёРµ РґР»СЏ РѕС‚РїСЂР°РІРєРё СѓРІРµРґРѕРјР»РµРЅРёСЏ.");
         return;
     }
     
@@ -232,14 +232,14 @@ function sender_send() {
         document.getElementById("sender_message").removeAttribute("disabled", "disabled");
         document.getElementById("message_sender").removeAttribute("disabled", "disabled");
         document.getElementById("apps").removeAttribute("disabled", "disabled");
-        app.showAlert("Сообщение должно содержать более 10 символов.");
+        app.showAlert("РЎРѕРѕР±С‰РµРЅРёРµ РґРѕР»Р¶РЅРѕ СЃРѕРґРµСЂР¶Р°С‚СЊ Р±РѕР»РµРµ 10 СЃРёРјРІРѕР»РѕРІ.");
         return;
     }
     
     var info_user = getIdVK();
     var uid = info_user['viewer_id'];
     
-    //Отправка уведомления
+    //РћС‚РїСЂР°РІРєР° СѓРІРµРґРѕРјР»РµРЅРёСЏ
     $.post(host_server, {
         action: "sender_message",
         app_id: id_app,
@@ -254,14 +254,14 @@ function sender_send() {
                 document.getElementById("sender_message").removeAttribute("disabled", "disabled");
                  document.getElementById("message_sender").removeAttribute("disabled", "disabled");
                 document.getElementById("apps").removeAttribute("disabled", "disabled");
-                app.showAlert("Уведомление не отправлено, приложение заблокировано или недоступно!");
+                app.showAlert("РЈРІРµРґРѕРјР»РµРЅРёРµ РЅРµ РѕС‚РїСЂР°РІР»РµРЅРѕ, РїСЂРёР»РѕР¶РµРЅРёРµ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅРѕ РёР»Рё РЅРµРґРѕСЃС‚СѓРїРЅРѕ!");
             } else
             {
                 console.log("TEST: " + data.test);
                 
                 var result_procent = ((sCurrent / sFinish * 100).toFixed(0));
                 
-                $("#sender_status_").html("<span style='color:green;'>Статус: Начата отправка уведомления: </span> Завершено на: <span style='color:red;'>"+result_procent+"%</span>");
+                $("#sender_status_").html("<span style='color:green;'>РЎС‚Р°С‚СѓСЃ: РќР°С‡Р°С‚Р° РѕС‚РїСЂР°РІРєР° СѓРІРµРґРѕРјР»РµРЅРёСЏ: </span> Р—Р°РІРµСЂС€РµРЅРѕ РЅР°: <span style='color:red;'>"+result_procent+"%</span>");
                 
                 $("#sender_status_").html($("#sender_status_").html() +
                                          '<div class="progress progress-striped">' +
@@ -281,7 +281,7 @@ function sender_send() {
                 document.getElementById("sender_message").removeAttribute("disabled", "disabled");
                 document.getElementById("message_sender").removeAttribute("disabled", "disabled");
                 document.getElementById("apps").removeAttribute("disabled", "disabled");
-                app.showAlert("В данный момент идет 'Автоматическая отправка', ждите завершения!.");
+                app.showAlert("Р’ РґР°РЅРЅС‹Р№ РјРѕРјРµРЅС‚ РёРґРµС‚ 'РђРІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ РѕС‚РїСЂР°РІРєР°', Р¶РґРёС‚Рµ Р·Р°РІРµСЂС€РµРЅРёСЏ!.");
                 return;
             }
             */
@@ -300,7 +300,7 @@ function sender_send() {
                 document.getElementById("sender_message").removeAttribute("disabled", "disabled");
                 document.getElementById("message_sender").removeAttribute("disabled", "disabled");
                 document.getElementById("apps").removeAttribute("disabled", "disabled");
-                app.showAlert("Вы исчерпали лимит Уведомлений на сегодняшний день.");
+                app.showAlert("Р’С‹ РёСЃС‡РµСЂРїР°Р»Рё Р»РёРјРёС‚ РЈРІРµРґРѕРјР»РµРЅРёР№ РЅР° СЃРµРіРѕРґРЅСЏС€РЅРёР№ РґРµРЅСЊ.");
                 return;
             }
             
@@ -309,11 +309,11 @@ function sender_send() {
                 document.getElementById("sender_message").removeAttribute("disabled", "disabled");
                 document.getElementById("message_sender").removeAttribute("disabled", "disabled");
                 document.getElementById("apps").removeAttribute("disabled", "disabled");
-                app.showAlert("Время для следующей отправки еще не наступило.");
+                app.showAlert("Р’СЂРµРјСЏ РґР»СЏ СЃР»РµРґСѓСЋС‰РµР№ РѕС‚РїСЂР°РІРєРё РµС‰Рµ РЅРµ РЅР°СЃС‚СѓРїРёР»Рѕ.");
                 return;
             }
             
-            app.showAlert("Уведомление не отправлено.");
+            app.showAlert("РЈРІРµРґРѕРјР»РµРЅРёРµ РЅРµ РѕС‚РїСЂР°РІР»РµРЅРѕ.");
             
             document.getElementById("sender_message").removeAttribute("disabled", "disabled");
             document.getElementById("message_sender").removeAttribute("disabled", "disabled");
@@ -330,12 +330,12 @@ function onAjaxSuccess()
     setTimeout(sender_send, 1500);
 }
 
-//Выбрали приложение убираем блокировку с input полей
+//Р’С‹Р±СЂР°Р»Рё РїСЂРёР»РѕР¶РµРЅРёРµ СѓР±РёСЂР°РµРј Р±Р»РѕРєРёСЂРѕРІРєСѓ СЃ input РїРѕР»РµР№
 function select_app() {    
     document.getElementById("code_add_your_app_").style.display = '';
 }
 
-//Очистка
+//РћС‡РёСЃС‚РєР°
 function reset_data(category)
 {
     if(category == "addnewapp")
@@ -353,16 +353,16 @@ function reset_data(category)
     }
 }
 
-//Регистрация пользователей в приложении
+//Р РµРіРёСЃС‚СЂР°С†РёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ РІ РїСЂРёР»РѕР¶РµРЅРёРё
 function RegisterVisits() {    
     $.post(host_server, {
         action: "set_visits_register"
     }, function (data){
-        console.log("[APP] Регистрация посещений успешно завершена!");
+        console.log("[APP] Р РµРіРёСЃС‚СЂР°С†РёСЏ РїРѕСЃРµС‰РµРЅРёР№ СѓСЃРїРµС€РЅРѕ Р·Р°РІРµСЂС€РµРЅР°!");
     });
 }
 
-//Добавляем новое приложение
+//Р”РѕР±Р°РІР»СЏРµРј РЅРѕРІРѕРµ РїСЂРёР»РѕР¶РµРЅРёРµ
 function AddNewApp()
 {
     var url = host_server_js+"/addnewapp.js?";
@@ -372,13 +372,13 @@ function AddNewApp()
     });
 }
 
-//Загружаем список добавленных приложений
+//Р—Р°РіСЂСѓР¶Р°РµРј СЃРїРёСЃРѕРє РґРѕР±Р°РІР»РµРЅРЅС‹С… РїСЂРёР»РѕР¶РµРЅРёР№
 function LoadApp() {
     $('#list_added_app').html(null);
     
-    //Получаем информацию о добавленных приложениях
+    //РџРѕР»СѓС‡Р°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ РґРѕР±Р°РІР»РµРЅРЅС‹С… РїСЂРёР»РѕР¶РµРЅРёСЏС…
     $('#apps').children().remove();
-    $("#apps").append($('<option>', {value:"0", text: "Мои приложения", disabled: true}));
+    $("#apps").append($('<option>', {value:"0", text: "РњРѕРё РїСЂРёР»РѕР¶РµРЅРёСЏ", disabled: true}));
     
     var info_user = getIdVK();
     var uid = info_user['viewer_id'];
@@ -411,22 +411,22 @@ function LoadApp() {
                 $("#apps").append($('<option>', {value:id_app, text: title_app}));
             }
             
-            console.log("[APP] Список приложений загружен!");
+            console.log("[APP] РЎРїРёСЃРѕРє РїСЂРёР»РѕР¶РµРЅРёР№ Р·Р°РіСЂСѓР¶РµРЅ!");
             $('#loading_list_app').html(null);
             fisrt_start();
             select_get_app();
         } else {            
-            $("#apps").append($('<option>', {value:"0", text: "Нет добавленных приложений", disabled: true, selected: true}));
+            $("#apps").append($('<option>', {value:"0", text: "РќРµС‚ РґРѕР±Р°РІР»РµРЅРЅС‹С… РїСЂРёР»РѕР¶РµРЅРёР№", disabled: true, selected: true}));
             
-            console.log("[APP] У пользователя нет добавленных приложений!");
+            console.log("[APP] РЈ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РЅРµС‚ РґРѕР±Р°РІР»РµРЅРЅС‹С… РїСЂРёР»РѕР¶РµРЅРёР№!");
             
 			reset_data('addnewapp');
         }
         
-        //Общий Доступ
+        //РћР±С‰РёР№ Р”РѕСЃС‚СѓРї
         if(data.control_remote == 1)
         {            
-            $("#apps").append($('<option>', {value:"0", text: "Общий доступ", disabled: true}));
+            $("#apps").append($('<option>', {value:"0", text: "РћР±С‰РёР№ РґРѕСЃС‚СѓРї", disabled: true}));
             
             var gRCountRemote = data.count_remote_app;
             for (var i2 = 0; i2 < gRCountRemote; i2++)
@@ -448,7 +448,7 @@ function LoadApp() {
                 
                 $("#apps").append($('<option>', {value:id_app_, text: title_app_}));
             }
-            console.log("[APP] Список приложений загружен!");
+            console.log("[APP] РЎРїРёСЃРѕРє РїСЂРёР»РѕР¶РµРЅРёР№ Р·Р°РіСЂСѓР¶РµРЅ!");
             $('#loading_list_app').html(null);
             fisrt_start();
             select_get_app();
@@ -456,7 +456,7 @@ function LoadApp() {
         
         if(gRCount == 0 && data.control_remote != 1)
         {
-            app.showDialog('Добавить приложение',app.getTemplate('AddNewApp'),buttons_add_app);
+            app.showDialog('Р”РѕР±Р°РІРёС‚СЊ РїСЂРёР»РѕР¶РµРЅРёРµ',app.getTemplate('AddNewApp'),buttons_add_app);
             $('#loading_list_app').html(null);
             document.getElementById("added_app_not_function").style.display = '';
 			$('#big_loading').html('');
@@ -464,7 +464,7 @@ function LoadApp() {
     });
 }
 
-//Получаем список пользователей
+//РџРѕР»СѓС‡Р°РµРј СЃРїРёСЃРѕРє РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№
 function GetUserApp()
 {
     var url = host_server_js+"/GetUserApp.js?";
@@ -475,17 +475,17 @@ function GetUserApp()
     });
 }
 
-//Сохранение данных
+//РЎРѕС…СЂР°РЅРµРЅРёРµ РґР°РЅРЅС‹С…
 function SetInfo() {
    
     if(!$('#app_title_').val() || !$('#app_id').val() || !$('#app_secret_key').val())
     {
-        app.showAlert("Заполните все данные");
+        app.showAlert("Р—Р°РїРѕР»РЅРёС‚Рµ РІСЃРµ РґР°РЅРЅС‹Рµ");
         return;
     }
     
     if(!$.isNumeric($('#app_id').val())){
-        app.showAlert("Вы ввели неправильный ID приложения");
+        app.showAlert("Р’С‹ РІРІРµР»Рё РЅРµРїСЂР°РІРёР»СЊРЅС‹Р№ ID РїСЂРёР»РѕР¶РµРЅРёСЏ");
         return;
     }
     
@@ -500,7 +500,7 @@ function SetInfo() {
         }, function(data) {
             if(data.valid_app == 0)
             {
-                app.showAlert("Приложение с таким ID не существует!");
+                app.showAlert("РџСЂРёР»РѕР¶РµРЅРёРµ СЃ С‚Р°РєРёРј ID РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚!");
                 return;
             }
             
@@ -517,19 +517,19 @@ function SetInfo() {
                     LoadApp();
                     GetUserApp(document.getElementById("apps").value);
                     select_app();
-                    app.showAlert("Данные Сохранены");
+                    app.showAlert("Р”Р°РЅРЅС‹Рµ РЎРѕС…СЂР°РЅРµРЅС‹");
                 }
                 else
-                    app.showAlert("УПС ошибка сохранения");
+                    app.showAlert("РЈРџРЎ РѕС€РёР±РєР° СЃРѕС…СЂР°РЅРµРЅРёСЏ");
             }
             else if(data.status == "0")
-                app.showAlert("УПС ошибка доступа");
+                app.showAlert("РЈРџРЎ РѕС€РёР±РєР° РґРѕСЃС‚СѓРїР°");
         });
     } else
-        app.showAlert("Введите Данные!");
+        app.showAlert("Р’РІРµРґРёС‚Рµ Р”Р°РЅРЅС‹Рµ!");
 }
 
-//Получение данных о приложении
+//РџРѕР»СѓС‡РµРЅРёРµ РґР°РЅРЅС‹С… Рѕ РїСЂРёР»РѕР¶РµРЅРёРё
 function GetInfo(app_id, category) {    
     var url = host_server_js+"/GetInfo.js?";
     $.getScript( url, function() {
@@ -539,7 +539,7 @@ function GetInfo(app_id, category) {
     });
 }
 
-//Список отправленных уведомлений
+//РЎРїРёСЃРѕРє РѕС‚РїСЂР°РІР»РµРЅРЅС‹С… СѓРІРµРґРѕРјР»РµРЅРёР№
 function list_send_load(){
     var url = host_server_js+"/list_send_load.js";
     $.getScript( url, function() {
@@ -548,7 +548,7 @@ function list_send_load(){
     });
 }
 
-//Список посещений приложения
+//РЎРїРёСЃРѕРє РїРѕСЃРµС‰РµРЅРёР№ РїСЂРёР»РѕР¶РµРЅРёСЏ
 function load_visits_app() {
     var url = host_server_js+"/load_visits_app.js?";
     $.getScript( url, function() {
@@ -558,7 +558,7 @@ function load_visits_app() {
     });
 }
 
-//Выбираем последний Select приложений
+//Р’С‹Р±РёСЂР°РµРј РїРѕСЃР»РµРґРЅРёР№ Select РїСЂРёР»РѕР¶РµРЅРёР№
 function select_get_app() {
     app.getUserVars('selected_app', function(data){
         var sel = document.getElementById('apps');
@@ -585,7 +585,7 @@ function select_get_app() {
     });
 }
 
-//Удаление приложения
+//РЈРґР°Р»РµРЅРёРµ РїСЂРёР»РѕР¶РµРЅРёСЏ
 function delete_app() {
     $.post(host_server, {
         action: "delete_app",
@@ -593,7 +593,7 @@ function delete_app() {
     }, function (data){       
         if(data.status == 0)
         {
-            app.showAlert("Ошибка: Удаление не было произведено.");
+            app.showAlert("РћС€РёР±РєР°: РЈРґР°Р»РµРЅРёРµ РЅРµ Р±С‹Р»Рѕ РїСЂРѕРёР·РІРµРґРµРЅРѕ.");
             return;
         }
                
@@ -605,8 +605,8 @@ function delete_app() {
                 var sel2 = sel.options[i].value;
                 
                 app.setUserVar('selected_app',sel2, function(data){
-                    if(data.response) console.log("[APP] Selected Изменения сохранены");
-                    else console.log("[APP] Selected Изменения не сохранены");
+                    if(data.response) console.log("[APP] Selected РР·РјРµРЅРµРЅРёСЏ СЃРѕС…СЂР°РЅРµРЅС‹");
+                    else console.log("[APP] Selected РР·РјРµРЅРµРЅРёСЏ РЅРµ СЃРѕС…СЂР°РЅРµРЅС‹");
                 });
                 
                 sel.selectedIndex = 1;
@@ -625,11 +625,11 @@ function delete_app() {
         list_send_load();
         setTimeout(function () {GetInfo($('#apps').val()); }, 700);
         
-        app.showAlert("Приложение удалено!");
+        app.showAlert("РџСЂРёР»РѕР¶РµРЅРёРµ СѓРґР°Р»РµРЅРѕ!");
     });
 }
 
-//Список пользователей получивших общий доступ к добавленному приложению.
+//РЎРїРёСЃРѕРє РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ РїРѕР»СѓС‡РёРІС€РёС… РѕР±С‰РёР№ РґРѕСЃС‚СѓРї Рє РґРѕР±Р°РІР»РµРЅРЅРѕРјСѓ РїСЂРёР»РѕР¶РµРЅРёСЋ.
 function Sharing() {
     $.post(host_server, {
         action: "users_list_sharing",
@@ -639,13 +639,13 @@ function Sharing() {
             document.getElementById("add_remote_control").removeAttribute("disabled", "disabled");
             
             var grCount = data.count;
-            $("#sharing_user").html('<table width="100%" border=1><tr><td colspan="2" align="center">Список пользователей ' + '</td></tr>');
+            $("#sharing_user").html('<table width="100%" border=1><tr><td colspan="2" align="center">РЎРїРёСЃРѕРє РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ ' + '</td></tr>');
             
             if(grCount == 0)
             {
                 $("#sharing_user").append('<tr></tr>');
                 for(j=1;j<=1;j++) {
-                    $("#sharing_user > tbody > tr:last").append('<td colspan="2">Вы еще никого не добавили в общий доступ!</td>');
+                    $("#sharing_user > tbody > tr:last").append('<td colspan="2">Р’С‹ РµС‰Рµ РЅРёРєРѕРіРѕ РЅРµ РґРѕР±Р°РІРёР»Рё РІ РѕР±С‰РёР№ РґРѕСЃС‚СѓРї!</td>');
                 }
             }
             
@@ -660,7 +660,7 @@ function Sharing() {
                     $("#sharing_user").append('<tr></tr>');
                     for(j=1;j<=1;j++) {
                         $("#sharing_user > tbody > tr:last").append('<td><label for="' + uid_remote_ + '">' + real_name_ + '</label></td>');
-                        $("#sharing_user > tbody > tr:last").append('<td><span class="glyphicon glyphicon-remove" onclick="javascript:delete_remote_control('+uid_remote_+');" style="cursor: pointer;" title="Удалить"></span></td>');
+                        $("#sharing_user > tbody > tr:last").append('<td><span class="glyphicon glyphicon-remove" onclick="javascript:delete_remote_control('+uid_remote_+');" style="cursor: pointer;" title="РЈРґР°Р»РёС‚СЊ"></span></td>');
                     }
                 }
             }
@@ -669,7 +669,7 @@ function Sharing() {
         });
 }
 
-//Удаляем пользователю общий доступ у добавленного приложения
+//РЈРґР°Р»СЏРµРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ РѕР±С‰РёР№ РґРѕСЃС‚СѓРї Сѓ РґРѕР±Р°РІР»РµРЅРЅРѕРіРѕ РїСЂРёР»РѕР¶РµРЅРёСЏ
 function delete_remote_control(uid_remote) {
     $.post(host_server, {
         action: "users_delete_sharing",
@@ -677,15 +677,15 @@ function delete_remote_control(uid_remote) {
         uid_remote: uid_remote
         }, function (data){
             if(data.status == 0) {
-                app.showAlert("Ошибка: Пользователь не удален из общего доступа!");
+                app.showAlert("РћС€РёР±РєР°: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ СѓРґР°Р»РµРЅ РёР· РѕР±С‰РµРіРѕ РґРѕСЃС‚СѓРїР°!");
                 return;
             }
             Sharing();
-            app.showAlert("Успешно: Пользователь удален из общего доступа!");
+            app.showAlert("РЈСЃРїРµС€РЅРѕ: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СѓРґР°Р»РµРЅ РёР· РѕР±С‰РµРіРѕ РґРѕСЃС‚СѓРїР°!");
         });
 }
 
-//Окно подтвержения добавления общего доступа
+//РћРєРЅРѕ РїРѕРґС‚РІРµСЂР¶РµРЅРёСЏ РґРѕР±Р°РІР»РµРЅРёСЏ РѕР±С‰РµРіРѕ РґРѕСЃС‚СѓРїР°
 function access_remote_control() {
     
     $.post(host_server, {
@@ -696,19 +696,19 @@ function access_remote_control() {
                     'content_modal_window': data25.txt
         };
         
-        var buttons={'add_remote_control':{label: 'Добавить администратора', callback: function(){
+        var buttons={'add_remote_control':{label: 'Р”РѕР±Р°РІРёС‚СЊ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°', callback: function(){
             
         }}};
-        app.showDialog('Добавление Общего доступа',app.getTemplate('FreeModal', vars_remote_control),buttons);
+        app.showDialog('Р”РѕР±Р°РІР»РµРЅРёРµ РћР±С‰РµРіРѕ РґРѕСЃС‚СѓРїР°',app.getTemplate('FreeModal', vars_remote_control),buttons);
     });
 }
 
-//Добавляем пользователю общий доступ к добавленному приложению
+//Р”РѕР±Р°РІР»СЏРµРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ РѕР±С‰РёР№ РґРѕСЃС‚СѓРї Рє РґРѕР±Р°РІР»РµРЅРЅРѕРјСѓ РїСЂРёР»РѕР¶РµРЅРёСЋ
 function add_Sharing_Remote_Control() {
     document.getElementById("add_remote_control").setAttribute("disabled", "disabled");
     if(!$('#uid_user_remote_control').val())
     {
-        app.showAlert("Введите ссылку на страницу пользователя которому вы хотите предоставить общий доступ!");
+        app.showAlert("Р’РІРµРґРёС‚Рµ СЃСЃС‹Р»РєСѓ РЅР° СЃС‚СЂР°РЅРёС†Сѓ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РєРѕС‚РѕСЂРѕРјСѓ РІС‹ С…РѕС‚РёС‚Рµ РїСЂРµРґРѕСЃС‚Р°РІРёС‚СЊ РѕР±С‰РёР№ РґРѕСЃС‚СѓРї!");
         document.getElementById("add_remote_control").removeAttribute("disabled", "disabled");
         return;
     }
@@ -721,7 +721,7 @@ function add_Sharing_Remote_Control() {
     {
         if( full_link.indexOf('http://vk.com/app') != -1 || full_link.indexOf('https://vk.com/app') != -1 )
         {
-            app.showAlert("Вы указали неверную ссылку!");
+            app.showAlert("Р’С‹ СѓРєР°Р·Р°Р»Рё РЅРµРІРµСЂРЅСѓСЋ СЃСЃС‹Р»РєСѓ!");
             document.getElementById("add_remote_control").removeAttribute("disabled", "disabled");
             return false;
         }
@@ -739,7 +739,7 @@ function add_Sharing_Remote_Control() {
 		);
 
     } else {
-        app.showAlert("Вы указали неверную ссылку!");
+        app.showAlert("Р’С‹ СѓРєР°Р·Р°Р»Рё РЅРµРІРµСЂРЅСѓСЋ СЃСЃС‹Р»РєСѓ!");
         
         document.getElementById("add_remote_control").removeAttribute("disabled", "disabled");
         return false;
@@ -747,7 +747,7 @@ function add_Sharing_Remote_Control() {
     
     if(full_link == 'vk.com' || full_link == 'http://vk.com/' || full_link == 'http://vk.com' || link.indexOf('#/') != -1)
     {
-        app.showAlert("Вы указали неверную ссылку!");
+        app.showAlert("Р’С‹ СѓРєР°Р·Р°Р»Рё РЅРµРІРµСЂРЅСѓСЋ СЃСЃС‹Р»РєСѓ!");
         document.getElementById("add_remote_control").removeAttribute("disabled", "disabled");
         return false;
     }
@@ -788,7 +788,7 @@ function add_Sharing_Remote_Control() {
     }, 500);
 }
 
-//Поиск пользователя
+//РџРѕРёСЃРє РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
 function search_user() {    
     var url = host_server_js+"/search_user.js";
     $.getScript( url, function() {
@@ -797,7 +797,7 @@ function search_user() {
     });
 }
 
-//Автоматическая отправка уведомлений
+//РђРІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ РѕС‚РїСЂР°РІРєР° СѓРІРµРґРѕРјР»РµРЅРёР№
 function autosendmessage() {
     var url = host_server_js+"/autosendmessage.js";
     $.getScript( url, function() {
@@ -806,7 +806,7 @@ function autosendmessage() {
     });
 }
 
-//Добавляем задание
+//Р”РѕР±Р°РІР»СЏРµРј Р·Р°РґР°РЅРёРµ
 function autoaddaction() {
     var url = host_server_js+"/control_auto_send_data_.js";
     $.getScript( url, function() {
@@ -815,17 +815,17 @@ function autoaddaction() {
     });
 }
 
-//Удаление задания автоматической отправки
+//РЈРґР°Р»РµРЅРёРµ Р·Р°РґР°РЅРёСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕР№ РѕС‚РїСЂР°РІРєРё
 function delete_action() {
     
 }
 
-//Узнаем название приложения
+//РЈР·РЅР°РµРј РЅР°Р·РІР°РЅРёРµ РїСЂРёР»РѕР¶РµРЅРёСЏ
 function title_app() {
     var id_app = document.getElementById("apps").value;
 }
 
-//Экспортирование данных
+//Р­РєСЃРїРѕСЂС‚РёСЂРѕРІР°РЅРёРµ РґР°РЅРЅС‹С…
 function Export() {
     setTimeout(function() {
         var url = host_server_js+"/export_.js";
@@ -846,12 +846,12 @@ function Export_Add() {
     });
 }
 
-//Список выполняемых действий
+//РЎРїРёСЃРѕРє РІС‹РїРѕР»РЅСЏРµРјС‹С… РґРµР№СЃС‚РІРёР№
 function active_action_list() {
     
 }
 
-//Информация о уведомлении
+//РРЅС„РѕСЂРјР°С†РёСЏ Рѕ СѓРІРµРґРѕРјР»РµРЅРёРё
 function info_sender(id) {
     var url = host_server_js+"/info_sender.js?";
     $.getScript( url, function() {
@@ -870,7 +870,7 @@ function paginator_simple() {
     });
 }
 
-//Информация о уведомлении
+//РРЅС„РѕСЂРјР°С†РёСЏ Рѕ СѓРІРµРґРѕРјР»РµРЅРёРё
 function info_user_logs(id, start) {
     var url = host_server_js+"/load_visits_app_logs.js?";
     $.getScript( url, function() {
@@ -880,28 +880,28 @@ function info_user_logs(id, start) {
     });
 }
 
-//Импорт
+//РРјРїРѕСЂС‚
 function Import() {
     
 }
 
-//Удаление уведомления
+//РЈРґР°Р»РµРЅРёРµ СѓРІРµРґРѕРјР»РµРЅРёСЏ
 function delete_sender(id_sender) {
     
 }
 
-//Получаем VK ID пользователя
+//РџРѕР»СѓС‡Р°РµРј VK ID РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
 function getIdVK()
 {
-    // узнаём flashVars, переданные приложению GET запросом. Сохраняем их в переменную flashVars
+    // СѓР·РЅР°С‘Рј flashVars, РїРµСЂРµРґР°РЅРЅС‹Рµ РїСЂРёР»РѕР¶РµРЅРёСЋ GET Р·Р°РїСЂРѕСЃРѕРј. РЎРѕС…СЂР°РЅСЏРµРј РёС… РІ РїРµСЂРµРјРµРЅРЅСѓСЋ flashVars
     var parts=document.location.search.substr(1).split("&");
     var flashVars={}, curr;
     for (i=0; i<parts.length; i++) {
         curr = parts[i].split('=');
-        // записываем в массив flashVars значения. Например: flashVars['viewer_id'] = 1;
+        // Р·Р°РїРёСЃС‹РІР°РµРј РІ РјР°СЃСЃРёРІ flashVars Р·РЅР°С‡РµРЅРёСЏ. РќР°РїСЂРёРјРµСЂ: flashVars['viewer_id'] = 1;
         flashVars[curr[0]] = curr[1];
     }
-    // получаем viewer_id из полученных переменных
+    // РїРѕР»СѓС‡Р°РµРј viewer_id РёР· РїРѕР»СѓС‡РµРЅРЅС‹С… РїРµСЂРµРјРµРЅРЅС‹С…
     return flashVars;
 }
 
