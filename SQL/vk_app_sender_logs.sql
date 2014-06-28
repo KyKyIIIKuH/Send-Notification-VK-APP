@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: localhost
--- Время создания: Июн 25 2014 г., 21:41
+-- Время создания: Июн 28 2014 г., 10:08
 -- Версия сервера: 5.5.35-0+wheezy1
 -- Версия PHP: 5.4.4-14+deb7u8
 
@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS `vk_app_sender_logs` (
 `id` int(11) NOT NULL,
   `uid` int(11) NOT NULL,
   `hash` varchar(255) NOT NULL,
+  `hash_list` varchar(255) DEFAULT NULL,
   `app_id` int(11) NOT NULL,
   `message` text NOT NULL,
   `datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -44,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `vk_app_sender_logs` (
 -- Indexes for table `vk_app_sender_logs`
 --
 ALTER TABLE `vk_app_sender_logs`
- ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `hash` (`hash`);
+ ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `hash` (`hash`), ADD KEY `hash_list` (`hash_list`);
 
 --
 -- AUTO_INCREMENT for dumped tables
