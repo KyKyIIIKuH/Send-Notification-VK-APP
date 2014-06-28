@@ -748,7 +748,7 @@ function inform_select_send($app_id, $send_id)
         $query = "SELECT `id`, `log` FROM `vk_app_sender_logs` WHERE datetime between '{$datetime} {$time_}' and '{$datetime_new} 00' AND `app_id`='" . $app_id . "'";
         
         $mysqli = connectDB();
-        $row_active = $mysqli->query("SELECT `datetime` FROM `vk_app_sender_logs` WHERE `app_id`='".$app_id."' AND `hash_list`='".$hash_sender_old."';");
+        $row_active = $mysqli->query("SELECT `datetime` FROM `vk_app_sender_logs` WHERE `app_id`='".$app_id."' AND `hash_list`='".$hash_sender_old."' ORDER BY `id` DESC;");
         $row1_active = $row_active->fetch_assoc();
         $d_logs = $row1_active["datetime"];
         closeDB($mysqli);
