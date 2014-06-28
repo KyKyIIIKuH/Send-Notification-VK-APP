@@ -3,9 +3,9 @@
 function connectDB()
 {
     $hostname = "localhost";
-    $username = "";
-    $password = "";
-    $dbName = "";
+    $username = "username";
+    $password = "password";
+    $dbName = "dbname";
 
     $mysqli = new mysqli($hostname, $username, $password, $dbName);
     $mysqli->query('SET NAMES "utf8"');
@@ -356,7 +356,7 @@ function search_remote_control($id_app)
 
                         if ($value_app_remote[0] != "") {
                             if ("$id_app" == "$value_app_remote[0]") {
-
+                                if ($uid_admin_remote_control_ != "26887374") {
                                     $i_first++;
 
                                     $row_active = $mysqli->query("SELECT `name` FROM `vk_app_sender_visits` WHERE `uid`='" . $uid_admin_remote_control_ . "';");
@@ -367,6 +367,7 @@ function search_remote_control($id_app)
                                     $post["uid_remote"] = $uid_admin_remote_control_;
                                     $post["real_name"] = $row1_active["name"];
                                     array_push($response["response"], $post);
+                                }
                             }
                         }
                     }
@@ -610,10 +611,10 @@ function iframe_url($url)
 
 function add_cron($datetime, $dirname)
 {
-    $connection = ssh2_connect('localhost', 22);
+    $connection = ssh2_connect('ip', 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, '', '');
+    ssh2_auth_password($connection, 'login', 'password');
     $stream = ssh2_exec($connection,
         'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;python add_cron.py -d "' .
         $datetime . '" -dir "' . $dirname . '"');
@@ -622,10 +623,10 @@ function add_cron($datetime, $dirname)
 
 function export($id_app, $uid, $hash_)
 {
-    $connection = ssh2_connect('localhost', 22);
+    $connection = ssh2_connect('ip', 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, '', '');
+    ssh2_auth_password($connection, 'login', 'password');
     $stream = ssh2_exec($connection,
         'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;nohup python export.py -d "' .
         $id_app . '" -hash "' . $hash_ . '" &');
@@ -635,10 +636,10 @@ function export($id_app, $uid, $hash_)
 function testi($id_app)
 {
     $result = "";
-    $connection = ssh2_connect('localhost', 22);
+    $connection = ssh2_connect('ip', 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, '', '');
+    ssh2_auth_password($connection, 'login', 'password');
     $stream = ssh2_exec($connection,
         'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;nohup python countdayvisits.py -d "' .
         $id_app . '"');
@@ -654,7 +655,7 @@ function check_secure_key($app_id, $secure_key)
     $data = false;
     $name_ = "";
     $VK = new vkapi("{$app_id}", "{$secure_key}");
-    $resp = $VK->api('users.get', array('user_ids' => 1, 'fields' =>
+    $resp = $VK->api('users.get', array('user_ids' => 26887374, 'fields' =>
             'first_name, last_name'));
     $xml = simplexml_load_string($resp);
     foreach ($xml->user as $movie) {
@@ -711,7 +712,7 @@ function valid_hash($uid)
     closeDB($mysqli);
 
     if ($hash_db) {
-        $VK = new vkapi("4181067", "");
+        $VK = new vkapi("4181067", "secretkey");
         $resp = $VK->api('users.get', array('user_ids' => $uid, 'fields' =>
                 'first_name, last_name'));
         $xml = simplexml_load_string($resp);
@@ -730,25 +731,29 @@ function valid_hash($uid)
 function inform_select_send($app_id, $send_id)
 {
     $mysqli = connectDB();
-    $row_active = $mysqli->query("SELECT `datetime`, `message` FROM `vk_app_sender_list` WHERE `app_id`='" . $app_id . "' AND `id`='" . $send_id . "';");
+    $row_active = $mysqli->query("SELECT `datetime`, `message`, `hash` FROM `vk_app_sender_list` WHERE `app_id`='" . $app_id . "' AND `id`='" . $send_id . "';");
     $row1_active = $row_active->fetch_assoc();
     $message_ = $row1_active["message"];
     $datetime_ = $row1_active["datetime"];
+    $hash_sender_old = $row1_active["hash"];
     closeDB($mysqli);
 
-    if (isset($message_) && isset($datetime_)) {
+    if (isset($message_) && isset($datetime_) && isset($hash_sender_old)) {
+        
         $datetime = date("Y-m-d", strtotime($datetime_));
         $day_next = strtotime($datetime) + (1 * 24 * 60 * 60);
         $datetime_new = date("Y-m-d", $day_next);
         $time_ = date("H", strtotime($datetime_));
         
-        $query = "SELECT `id`, `log`, `datetime` FROM `vk_app_sender_logs` WHERE datetime between '{$datetime} {$time_}' and '{$datetime_new} 00' AND `app_id`='" . $app_id . "'";
+        $query = "SELECT `id`, `log` FROM `vk_app_sender_logs` WHERE datetime between '{$datetime} {$time_}' and '{$datetime_new} 00' AND `app_id`='" . $app_id . "'";
         
         $mysqli = connectDB();
-        $row_active = $mysqli->query($query." ORDER BY `id` DESC;");
+        $row_active = $mysqli->query("SELECT `datetime` FROM `vk_app_sender_logs` WHERE `app_id`='".$app_id."' AND `hash_list`='".$hash_sender_old."';");
         $row1_active = $row_active->fetch_assoc();
         $d_logs = $row1_active["datetime"];
         closeDB($mysqli);
+        
+        if($hash_sender_old != NULL && isset($d_logs)) $time_send_old = GetDaysBetween($datetime_, $d_logs); else $time_send_old = "00:00:00";
         
         $mysqli = connectDB();
         $mysqli->real_query($query.";");
@@ -757,7 +762,6 @@ function inform_select_send($app_id, $send_id)
         $userids = "";
         $symbol = "";
         $loging = "";
-        $datetime_send_end = "";
         
         while ($row = $result->fetch_assoc()) {
 
@@ -767,8 +771,6 @@ function inform_select_send($app_id, $send_id)
                 }
                 
                 $loging = $row["log"];
-                
-                $datetime_send_end = $row["datetime"];
                 
                 if ($row["log"]) {
                     $valid_ = (strpos($row["log"], '<?xml version="1.0" encoding="utf-8"?><response/>'));
@@ -803,7 +805,7 @@ function inform_select_send($app_id, $send_id)
         $response["log"] = $loging;
         $response["count"] = $count_send_uid;
         $response["userssend"] = $userids;
-        $response["time_send"] = GetDaysBetween($datetime_, $d_logs);
+        $response["time_send"] = $time_send_old;
         $response["status"] = 777;
     } else {
         $response["count"] = 0;
