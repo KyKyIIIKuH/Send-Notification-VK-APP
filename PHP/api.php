@@ -74,7 +74,7 @@ if (isset($_POST["action"])) {
                 return;
             
             if ($social == "vk") {
-                $VK = new vkapi("app id", "secret_key");
+                $VK = new vkapi("app id", "secret key");
                 $resp = $VK->api('users.get', array('user_ids' => $uid, 'fields' =>
                         'first_name, last_name'));
                 $xml = simplexml_load_string($resp);
@@ -599,7 +599,7 @@ if (isset($_POST["action"])) {
             $secret_key_app_select = trim($secret_key_app_select);
             $userids = trim($userids);
             
-            if(isset($_POST['userids'])) { $userids_selected = $_POST['userids']; $userids_selected = trim($userids_selected); } else $userids_selected = NULL;
+            if(isset($_POST['userids'])) $userids_selected = $_POST['userids']; else $userids_selected = NULL;
             
             if($category_ == 0)
                 $userids = userids_str_replace($userids, $userids_selected);
@@ -607,8 +607,6 @@ if (isset($_POST["action"])) {
             if($category_ == 1)
                 $userids = $userids_selected;
             
-            $userids = trim($userids);
-
             /*********************/
             $hash_sender_ = md5(time() . "SENDER_SEND");
             $mysqli = connectDB();

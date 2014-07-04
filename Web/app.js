@@ -257,7 +257,7 @@ function sender_send() {
         userids = selected_user_send[1];
     }
     
-    if(selected_user_send[0] && selected_user_send[1])
+    if(!userids)
     {
         document.getElementById("sender_message").removeAttribute("disabled", "disabled");
         document.getElementById("message_sender").removeAttribute("disabled", "disabled");
@@ -273,7 +273,7 @@ function sender_send() {
         message: message_send,
         fromid: sCurrent,
         category: category_,
-        userids: userids
+        userids: userids.toString()
     }, function(data) {
         if(data.status == 1)
         {
