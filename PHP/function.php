@@ -5,7 +5,7 @@ function connectDB()
     $hostname = "localhost";
     $username = "username";
     $password = "password";
-    $dbName = "dbname";
+    $dbName = "db";
 
     $mysqli = new mysqli($hostname, $username, $password, $dbName);
     $mysqli->query('SET NAMES "utf8"');
@@ -58,9 +58,9 @@ function time_explode_sender($datetime, $hour_plus = 0, $next_day = false)
     return $last_datetime_sender_;
 }
 
-function convertUrlQuery($query)
+function convertUrlQuery($query, $search = '&')
 {
-    $queryParts = explode('&', $query);
+    $queryParts = explode($search, $query);
 
     $params = array();
     $params["error"] = true;
@@ -68,25 +68,34 @@ function convertUrlQuery($query)
     if(count($queryParts) > 1)
     {
         foreach ($queryParts as $param) {
-            $item = explode('=', $param);
-            $params[$item[0]] = $item[1];
+            $item = explode("=", $param);
+            if(isset($item[0]) && isset($item[1]))
+                $params[$item[0]] = $item[1];
         }
     }
 
     return $params;
 }
 
-function valid_app($app_id)
+function valid_app($app_id, $social = "vk")
 {
-    //Проверка на валидность приложения
-    $json = file_get_contents("http://vk.com/app" . $app_id);
-
-    $json = mb_convert_encoding($json, 'HTML-ENTITIES', "windows-1251");
-
-    $valid_app_admin_bool = (strpos($json, " was disabled by site administrators."));
-    $valid_app_not_download_bool = (strpos($json,
-        " has not been uploaded by the user."));
-
+    $valid_app_admin_bool = false;
+    $valid_app_not_download_bool = false;
+    
+    if($social == "vk")
+    {
+        //Проверка на валидность приложения
+        $json = file_get_contents("http://vk.com/app" . $app_id);
+    
+        $json = mb_convert_encoding($json, 'HTML-ENTITIES', "windows-1251");
+    
+        $valid_app_admin_bool = (strpos($json, " was disabled by site administrators."));
+        $valid_app_not_download_bool = (strpos($json,
+            " has not been uploaded by the user."));
+    } else if($social == "ok")
+    {
+    }
+    
     if ($valid_app_admin_bool == true || $valid_app_not_download_bool == true) {
         return 0; //0
     }
@@ -481,11 +490,9 @@ function update_remote_control($id_app_old, $id_app_new)
     return $data;
 }
 
-function iframe_url($url)
+function iframe_url($url, $api_id)
 {
     $result_data = false;
-    $return_vk_data = convertUrlQuery($url);
-    $api_id = (int)$return_vk_data["api_id"];
     
     $value_app_frame = explode("http://", $url);
     if(isset($value_app_frame[1]))
@@ -611,10 +618,10 @@ function iframe_url($url)
 
 function add_cron($datetime, $dirname)
 {
-    $connection = ssh2_connect('ip', 22);
+    $connection = ssh2_connect('localhost', 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, 'login', 'password');
+    ssh2_auth_password($connection, 'usename', 'password');
     $stream = ssh2_exec($connection,
         'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;python add_cron.py -d "' .
         $datetime . '" -dir "' . $dirname . '"');
@@ -623,10 +630,10 @@ function add_cron($datetime, $dirname)
 
 function export($id_app, $uid, $hash_)
 {
-    $connection = ssh2_connect('ip', 22);
+    $connection = ssh2_connect('localhost', 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, 'login', 'password');
+    ssh2_auth_password($connection, 'usename', 'password');
     $stream = ssh2_exec($connection,
         'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;nohup python export.py -d "' .
         $id_app . '" -hash "' . $hash_ . '" &');
@@ -636,10 +643,10 @@ function export($id_app, $uid, $hash_)
 function testi($id_app)
 {
     $result = "";
-    $connection = ssh2_connect('ip', 22);
+    $connection = ssh2_connect('localhost', 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, 'login', 'password');
+    ssh2_auth_password($connection, 'usename', 'password');
     $stream = ssh2_exec($connection,
         'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;nohup python countdayvisits.py -d "' .
         $id_app . '"');
@@ -699,7 +706,7 @@ function real_title_app($id_app)
     return $json;
 }
 
-function valid_hash($uid)
+function valid_hash($uid, $name_, $social = "vk")
 {
     usleep(700);
     $data = false;
@@ -712,12 +719,15 @@ function valid_hash($uid)
     closeDB($mysqli);
 
     if ($hash_db) {
-        $VK = new vkapi("4181067", "secretkey");
-        $resp = $VK->api('users.get', array('user_ids' => $uid, 'fields' =>
-                'first_name, last_name'));
-        $xml = simplexml_load_string($resp);
-        foreach ($xml->user as $movie) {
-            $name_ = $movie->last_name . " " . $movie->first_name;
+        if($social == "vk")
+        {
+            $VK = new vkapi("app id vk", "secret_key");
+            $resp = $VK->api('users.get', array('user_ids' => $uid, 'fields' =>
+                    'first_name, last_name'));
+            $xml = simplexml_load_string($resp);
+            foreach ($xml->user as $movie) {
+                $name_ = $movie->last_name . " " . $movie->first_name;
+            }
         }
         $hash_register = md5($uid . $name_ . "SENDER");
 
@@ -824,16 +834,77 @@ function GetDaysBetween($date1 , $date2){
 
 function valid_user_app($id_app, $uid) {
         $info_app = data_app($id_app);
-        $uid_add_app = $info_app["uid_add"];
-        
-        $info_remote_control_app = repetition_remote_control($uid, $id_app);
-        $uid_remote_control_app = $info_remote_control_app;
-        
-        if($uid == $uid_add_app || $uid_remote_control_app == true) {
-            $response["status"] = 1;
-        } else
-            $response["status"] = 0;
-        
+        if(isset($info_app["uid_add"]))
+        {
+            $uid_add_app = $info_app["uid_add"];
+            
+            $info_remote_control_app = repetition_remote_control($uid, $id_app);
+            $uid_remote_control_app = $info_remote_control_app;
+            
+            if($uid == $uid_add_app || $uid_remote_control_app == true) {
+                $response["status"] = 1;
+            } else
+                $response["status"] = 0;
+        } else $response["status"] = 0;
         return $response;
+}
+
+function selected_send_user($id_app, $count_page, $first) {
+    
+    $data["status"] = 0;
+    $data["count"] = 0;
+    
+    if(isset($id_app) && isset($count_page) && isset($first))
+    {
+        $mysqli = connectDB();
+        
+        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE `id_app`='" . $id_app . "';");
+        $row2 = $row1->fetch_assoc();
+        if(isset($row2["count"])) $data["count"] = $row2["count"];
+        
+        $mysqli->real_query("SELECT `name`, `id_vk` FROM `vk_app_all_visits` WHERE `id_app`='" . $id_app . "' ORDER BY `date` DESC LIMIT " . $first . " , 50;");
+        $result = $mysqli->use_result();
+        
+        $data["response"] = array();
+        while ($row = $result->fetch_assoc()) {
+            $post["name"] = $row["name"];
+            $post["id_vk"] = $row["id_vk"];
+            array_push($data["response"], $post);
+        }
+        closeDB($mysqli);
+    }
+    
+    return $data;
+}
+
+function userids_str_replace($userids, $userids_selected) {
+    $count = explode(",", $userids_selected);
+    $count = count($count);
+    
+    $info_selected_user = explode(",", $userids_selected);
+    
+    for ($i = 0; $i < $count; $i++) {
+        $userids = str_replace($info_selected_user[$i], NULL, $userids);
+    }
+    
+    $count = explode(",", $userids);
+    $count = count($count);
+    
+    $info_selected_user = explode(",", $userids);
+    
+    $userids = "";
+    $symbol = "";
+    
+    for ($i = 0; $i < $count; $i++) {
+        if($info_selected_user[$i])
+        {
+            if ($userids !== "") {
+                $symbol = ",";
+            }
+            $userids = $userids . $symbol . $info_selected_user[$i];
+        }
+    }
+    
+    return $userids;
 }
 ?>

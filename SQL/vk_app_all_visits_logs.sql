@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: localhost
--- Время создания: Июн 25 2014 г., 21:39
+-- Время создания: Июл 04 2014 г., 22:43
 -- Версия сервера: 5.5.35-0+wheezy1
 -- Версия PHP: 5.4.4-14+deb7u8
 
@@ -31,8 +31,9 @@ CREATE TABLE IF NOT EXISTS `vk_app_all_visits_logs` (
   `hash` varchar(255) DEFAULT NULL,
   `id_app` int(11) NOT NULL,
   `name` varchar(64) NOT NULL,
-  `id_vk` int(11) NOT NULL,
-  `date` datetime NOT NULL
+  `id_vk` varchar(255) NOT NULL,
+  `date` datetime NOT NULL,
+  `social` enum('vk','ok') NOT NULL DEFAULT 'vk'
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
 
 --

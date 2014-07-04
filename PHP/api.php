@@ -15,8 +15,10 @@ error_reporting(E_ALL);
 
 define('ROOT_DIR', dirname(__file__));
 require_once ROOT_DIR . '/../modules/vkapi.class.php';
+require_once ROOT_DIR . '/../modules/odnoklassniki_sdk.php';
 require_once ROOT_DIR . '/../modules/simple_html_dom.php';
 require_once ROOT_DIR . '/function.php';
+//require_once ROOT_DIR . '/function_new.php';
 
 if (isset($_GET["TEST"])) {
     return;
@@ -25,82 +27,90 @@ if (isset($_GET["TEST"])) {
 if (isset($_POST["action"])) {
     $action = $_POST["action"];
     
-    if ($action == "trim") {
-        $text = $_POST["text"];
+    $id_app = "";
+    $uid = "";
+    $social = "";
+    $name_ = "";
+    
+    if (isset($_SERVER["HTTP_REFERER"])) {
+        $return_http_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+        $return_http_data0 = convertUrlQuery($_SERVER["HTTP_REFERER"], "?");
+        
+        if (isset($return_http_data["api_server"])) {
+            $social = "ok";
 
-        $text2 = trim($text);
+            if (isset($_POST["name"])) {
+                $name_ = $_POST["name"];
+                $uid = $return_http_data["logged_user_id"];
+                $id_app = explode("_", $return_http_data["apiconnection"]);
+                $id_app = $id_app[0];
+            }
+        } else
+            if (isset($return_http_data0["api_url"])) {
+                $social = "vk";
 
-        $arr_replace_utf2 = array(
-            "\t",
-            "\n",
-            " ",
-            "    ");
-        $arr_replace_cyr2 = array(
-            null,
-            null,
-            null,
-            null);
-        $text2 = str_replace($arr_replace_utf2, $arr_replace_cyr2, $text2);
-
-        $response["result"] = $text2;
-        echo json_encode($response);
-        return;
+                if (isset($return_http_data["api_id"]) && isset($return_http_data["viewer_id"])) {
+                    $id_app = (int)$return_http_data["api_id"];
+                    $uid = (int)$return_http_data["viewer_id"];
+                }
+                
+                if(isset($_POST["app_id"])) $id_app = (int)$_POST["app_id"];
+                if(isset($_POST["viewer_id"])) $uid = (int)$_POST["viewer_id"];
+            } else return;
+    } else {
+        if(isset($_POST["app_id"])) $id_app = (int)$_POST["app_id"]; else return;
+        if(isset($_POST["viewer_id"])) $uid = (int)$_POST["viewer_id"]; else return;
     }
 
     if ($action == "set_visits_register") {
-        if (!$_SERVER["HTTP_REFERER"])
-            return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        
-        if (!isset($return_vk_data["api_id"]) && !isset($return_vk_data["viewer_id"])) {
-            if(isset($_POST["api_id"]) && isset($_POST["viewer_id"])) {
-                $id_app = (int)$_POST["api_id"];
-                $uid = (int)$_POST["viewer_id"];
-            } else return;
-        } else {
-            $id_app = (int)$return_vk_data["api_id"];
-            $uid = (int)$return_vk_data["viewer_id"];
-        }
-        
         if (repetition_app($id_app) != true)
             return;
-
+        
         $response["id_app"] = $id_app;
         $response["uid"] = $uid;
 
         if ($id_app) {
-            if (valid_app($id_app) == 0)
+            if (valid_app($id_app, $social) == 0)
                 return;
-
-            $VK = new vkapi("4181067", "");
-            $resp = $VK->api('users.get', array('user_ids' => $uid, 'fields' =>'first_name, last_name'));
-            $xml = simplexml_load_string($resp);
-            foreach ($xml->user as $movie) {
-                $name_ = $movie->last_name . " " . $movie->first_name;
+            
+            if ($social == "vk") {
+                $VK = new vkapi("app id", "secret_key");
+                $resp = $VK->api('users.get', array('user_ids' => $uid, 'fields' =>
+                        'first_name, last_name'));
+                $xml = simplexml_load_string($resp);
+                foreach ($xml->user as $movie) {
+                    $name_ = $movie->last_name . " " . $movie->first_name;
+                }
             }
+
             $mysqli = connectDB();
             if ($id_app) {
-                if ("{$id_app}" == "4181067") {
-                    $row_active = $mysqli->query("SELECT `hash`, `visits` FROM `vk_app_sender_visits` WHERE `uid`='" .$uid . "';");
+                if ("{$id_app}" == "4181067" && $social == "vk" || "{$id_app}" == "1092221952" && $social == "ok") {
+                    $row_active = $mysqli->query("SELECT `hash`, `visits` FROM `vk_app_sender_visits` WHERE `uid`='" .
+                        $uid . "';");
                     $row1_active = $row_active->fetch_assoc();
                     $visits_ = $row1_active["visits"];
                     $hash_ = $row1_active["hash"];
-
+                    
                     $hash_register = md5($uid . $name_ . "SENDER");
                     $hash_edit = "";
                     if (!$hash_)
                         $hash_edit = ", `hash` = VALUES(`hash`)";
-
-                    $mysqli->query("INSERT INTO `vk_app_sender_visits` (`hash`, `name`, `uid`, `date`, `ip`, `visits`) VALUES ('" .$hash_register . "', '" . $name_ . "', '" . $uid . "', '" . date("Y-m-d H:i:s") ."', '" . $_SERVER["REMOTE_ADDR"] . "', '" . $visits_ ."') ON DUPLICATE KEY UPDATE `date` = VALUES(`date`), `ip` = VALUES(`ip`), `visits` = (`visits`+1){$hash_edit};");
+                    
+                    $mysqli->query("INSERT INTO `vk_app_sender_visits` (`hash`, `name`, `uid`, `date`, `ip`, `visits`, `social`) VALUES ('" .
+                        $hash_register . "', '" . $name_ . "', '" . $uid . "', '" . date("Y-m-d H:i:s") .
+                        "', '" . $_SERVER["REMOTE_ADDR"] . "', '" . $visits_ .
+                        "', '".$social."') ON DUPLICATE KEY UPDATE `date` = VALUES(`date`), `ip` = VALUES(`ip`), `visits` = (`visits`+1){$hash_edit};");
                 }
 
-                $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE `id_vk`='" .$uid . "';");
+                $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE `id_vk`='" .
+                    $uid . "';");
                 $row6 = $row5->fetch_assoc();
                 $user_count_ = $row6["count"];
 
                 if ($user_count_ > 0) {
-                    $row_active = $mysqli->query("SELECT `hash`, `visits` FROM `vk_app_all_visits` WHERE `id_vk`='" .$uid . "' AND `id_app`='" . $id_app . "';");
+                    $row_active = $mysqli->query("SELECT `hash`, `visits` FROM `vk_app_all_visits` WHERE `id_vk`='" .
+                        $uid . "' AND `id_app`='" . $id_app . "';");
                     $row1_active = $row_active->fetch_assoc();
                     $visits_ = $row1_active["visits"];
                     $hash_ = $row1_active["hash"];
@@ -117,21 +127,25 @@ if (isset($_POST["action"])) {
                     $hash_ = "NULL";
                 else
                     $hash_ = "'{$hash_}'";
-                
+
                 if ($visits_ == null)
                     $visits_ = 0;
                 else
                     $visits_ = $visits_;
                 
-                iframe_url($_SERVER["HTTP_REFERER"]);
-                
-                $mysqli->query("INSERT INTO `vk_app_all_visits` (`hash`, `id_app`, `name`, `id_vk`, `date`, `visits`) VALUES (" .$hash_ . ", '" . $id_app . "', '" . $name_ . "', '" . $uid . "', '" . date("Y-m-d H:i:s") ."', '" . $visits_ . "') ON DUPLICATE KEY UPDATE `date` = VALUES(`date`), `visits` = (`visits`+1);");
-                if ($visits_ == 0)
-                {
-                    $mysqli->query("UPDATE `vk_app_all_visits` SET `first_visit`='".date("Y-m-d H:i:s")."' WHERE `hash`=" .$hash_ . ";");
+                iframe_url($_SERVER["HTTP_REFERER"], $id_app);
+
+                $mysqli->query("INSERT INTO `vk_app_all_visits` (`hash`, `id_app`, `name`, `id_vk`, `date`, `visits`, `social`) VALUES (" .
+                    $hash_ . ", '" . $id_app . "', '" . $name_ . "', '" . $uid . "', '" . date("Y-m-d H:i:s") .
+                    "', '" . $visits_ . "', '" . $social . "') ON DUPLICATE KEY UPDATE `date` = VALUES(`date`), `visits` = (`visits`+1);");
+                if ($visits_ == 0) {
+                    $mysqli->query("UPDATE `vk_app_all_visits` SET `first_visit`='" . date("Y-m-d H:i:s") .
+                        "' WHERE `hash`=" . $hash_ . ";");
                 }
-                
-                $mysqli->query("INSERT INTO `vk_app_all_visits_logs` (`hash`, `id_app`, `name`, `id_vk`, `date`) VALUES ('" .md5(time() . "SENDER") . "', '" . $id_app . "', '" . $name_ . "', '" . $uid . "', '" . date("Y-m-d H:i:s") ."');");
+
+                $mysqli->query("INSERT INTO `vk_app_all_visits_logs` (`hash`, `id_app`, `name`, `id_vk`, `date`, `social`) VALUES ('" .
+                    md5(time() . "SENDER") . "', '" . $id_app . "', '" . $name_ . "', '" . $uid .
+                    "', '" . date("Y-m-d H:i:s") . "', '" . $social . "');");
             }
             closeDB($mysqli);
         }
@@ -144,19 +158,17 @@ if (isset($_POST["action"])) {
         if (!$_SERVER["HTTP_REFERER"])
             return;
         
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
         $title_app = $_POST["title_app"];
         $id_app = (int)$_POST["id_app"];
         $key_app = $_POST["key_app"];
-        
+
         if (repetition_app($id_app) == true) {
             $response["status"] = -777;
             $response["message"] = "Данное приложение уже добавлено в систему!";
             echo json_encode($response);
             return;
         }
-        
+
         $valid_app_ = valid_app($id_app);
 
         if ($valid_app_ == 0) {
@@ -164,19 +176,19 @@ if (isset($_POST["action"])) {
             echo json_encode($response);
             return;
         }
-        
+
         $response["valid_app"] = 1;
-        
-        if(!check_secure_key($id_app, "{$key_app}"))
-        {
+
+        if (!check_secure_key($id_app, "{$key_app}")) {
             $response["valid_secure_key"] = 0;
             $response["message"] = "Вы ввели неверный Защищённый ключ!";
             echo json_encode($response);
             return;
         }
-        
+
         $mysqli = connectDB();
-        $row_active = $mysqli->query("SELECT `title_app`, `list_app`, `list_secret_key` FROM `vk_app_sender_visits` WHERE `uid`='" . $uid . "';");
+        $row_active = $mysqli->query("SELECT `title_app`, `list_app`, `list_secret_key` FROM `vk_app_sender_visits` WHERE `uid`='" .
+            $uid . "';");
         $row1_active = $row_active->fetch_assoc();
         $title_app_ = $row1_active["title_app"];
         $list_app_ = $row1_active["list_app"];
@@ -236,102 +248,105 @@ if (isset($_POST["action"])) {
         if (!$_SERVER["HTTP_REFERER"])
             return;
         
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
-        
-        if(!valid_hash($uid))
-        {
+        if (!valid_hash($uid, $name_, $social)) {
             $response = "";
             echo json_encode($response);
             return;
         }
         
-            $mysqli = connectDB();
-            $row_active = $mysqli->query("SELECT `title_app`, `list_app`, `remote_control` FROM `vk_app_sender_visits` WHERE `uid`='" . $uid . "';");
-            $row1_active = $row_active->fetch_assoc();
-            $title_app_ = $row1_active["title_app"];
-            $list_app_ = $row1_active["list_app"];
-            $remote_control_ = $row1_active["remote_control"];
-            closeDB($mysqli);
-    
-            if (isset($title_app_) && isset($list_app_)) {
-                $count = explode("\r\n", $title_app_);
-                $count = count($count);
-    
-                $list_title_array = explode("\r\n", $title_app_);
-                $list_app_array = explode("\r\n", $list_app_);
-    
-                $response["count"] = $count;
-                $response["status"] = 1;
-    
-                $response["response"] = array();
-                for ($i = 0; $i < $count; $i++) {
-                    $post["title_app"] = $list_title_array[$i];
-                    //$post["title_app"] = real_title_app($list_app_array[$i]);
-                    $post["list_app"] = $list_app_array[$i];
-                    array_push($response["response"], $post);
-                }
-            } else {
-                $response["count"] = 0;
-                $response["status"] = 0;
-                $response["count_remote_app"] = 0;
+        $mysqli = connectDB();
+        $row_active = $mysqli->query("SELECT `title_app`, `list_app`, `remote_control` FROM `vk_app_sender_visits` WHERE `uid`='" .
+            $uid . "';");
+        $row1_active = $row_active->fetch_assoc();
+        $title_app_ = $row1_active["title_app"];
+        $list_app_ = $row1_active["list_app"];
+        $remote_control_ = $row1_active["remote_control"];
+        closeDB($mysqli);
+
+        if (isset($title_app_) && isset($list_app_)) {
+            $count = explode("\r\n", $title_app_);
+            $count = count($count);
+
+            $list_title_array = explode("\r\n", $title_app_);
+            $list_app_array = explode("\r\n", $list_app_);
+
+            $response["count"] = $count;
+            $response["status"] = 1;
+
+            $response["response"] = array();
+            for ($i = 0; $i < $count; $i++) {
+                $post["title_app"] = $list_title_array[$i];
+                //$post["title_app"] = real_title_app($list_app_array[$i]);
+                $post["list_app"] = $list_app_array[$i];
+                array_push($response["response"], $post);
             }
-    
-            //Общий Доступ
-            $count_remote_app_ = explode("\r\n", $remote_control_);
-            $count_remote_app_ = count($count_remote_app_);
-    
-            $list_remote_control_array = explode("\r\n", $remote_control_);
-    
-            if (strlen($remote_control_) > 0) {
-                $response["control_remote"] = 1;
-                $response["count_remote_app"] = $count_remote_app_;
-                $response["response_remote_control"] = array();
-    
-                for ($i = 0; $i < $count_remote_app_; $i++) {
-                    $list_remote_control_array_ = explode(":", $list_remote_control_array[$i]);
-    
-                    $post["id_app"] = $list_remote_control_array_[0];
-                    $post["title_app"] = title_app($list_remote_control_array_[0], $list_remote_control_array_[1]);
-                    //$post["title_app"] = real_title_app($list_remote_control_array_[0]);
-                    array_push($response["response_remote_control"], $post);
-                }
-            } else
-                $response["control_remote"] = 0;
-    
-            echo json_encode($response);
+        } else {
+            $response["count"] = 0;
+            $response["status"] = 0;
+            $response["count_remote_app"] = 0;
+        }
+
+        //Общий Доступ
+        $count_remote_app_ = explode("\r\n", $remote_control_);
+        $count_remote_app_ = count($count_remote_app_);
+
+        $list_remote_control_array = explode("\r\n", $remote_control_);
+
+        if (strlen($remote_control_) > 0) {
+            $response["control_remote"] = 1;
+            $response["count_remote_app"] = $count_remote_app_;
+            $response["response_remote_control"] = array();
+
+            for ($i = 0; $i < $count_remote_app_; $i++) {
+                $list_remote_control_array_ = explode(":", $list_remote_control_array[$i]);
+
+                $post["id_app"] = $list_remote_control_array_[0];
+                $post["title_app"] = title_app($list_remote_control_array_[0], $list_remote_control_array_[1]);
+                //$post["title_app"] = real_title_app($list_remote_control_array_[0]);
+                array_push($response["response_remote_control"], $post);
+            }
+        } else
+            $response["control_remote"] = 0;
+
+        echo json_encode($response);
         return;
     }
 
     if ($action == "get_app_user_list") {
-        
+
         if (!$_SERVER["HTTP_REFERER"])
             return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
+
+        //$return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+        //$uid = (int)$return_vk_data["viewer_id"];
         $id_app = (int)$_POST["id_app"];
-        
+
         $status_valid_user_app = valid_user_app($id_app, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
-        if(isset($_POST["start"])) $start = (int)$_POST["start"]; else $start = 0;
-        
+
+        if (isset($_POST["start"]))
+            $start = (int)$_POST["start"];
+        else
+            $start = 0;
+
         $number_page = 50;
-        
+
         $mysqli = connectDB();
-        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE `id_app`='" . $id_app . "';");
+        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE `id_app`='" .
+            $id_app . "';");
         $row2 = $row1->fetch_assoc();
         $count = $row2["count"];
         $response["count"] = $count;
-        
+
         $response["day_visits"] = 0;
-        
-        $mysqli->real_query("SELECT `name`, `id_vk` FROM `vk_app_all_visits` WHERE `id_app`='" . $id_app . "' ORDER BY `date` DESC,`visits` DESC LIMIT ".$start." , ".$number_page.";");
+
+        $mysqli->real_query("SELECT `name`, `id_vk` FROM `vk_app_all_visits` WHERE `id_app`='" .
+            $id_app . "' ORDER BY `date` DESC,`visits` DESC LIMIT " . $start . " , " . $number_page .
+            ";");
         $result = $mysqli->use_result();
 
         $response["response"] = array();
@@ -343,39 +358,35 @@ if (isset($_POST["action"])) {
             array_push($response["response"], $post);
         }
         closeDB($mysqli);
-        
+
         $response["all_page"] = $count;
         $response["count_user"] = $i_user;
-        
+
         $datetime = time();
         $datetime_old = date("Y-m-d", $datetime);
         $day_next = time() + (1 * 24 * 60 * 60);
         $datetime_new = date("Y-m-d", $day_next);
-        
+
         $mysqli = connectDB();
-        $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE first_visit between '{$datetime_old}' and '{$datetime_new}' AND `id_app`='" . $id_app . "';");
+        $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE first_visit between '{$datetime_old}' and '{$datetime_new}' AND `id_app`='" .
+            $id_app . "';");
         $row6 = $row5->fetch_assoc();
         closeDB($mysqli);
-        
-        if($row6["count"] > 0)
+
+        if ($row6["count"] > 0)
             $response["day_visits"] = $row6["count"];
         else
             $response["day_visits"] = 0;
-        
+
         echo json_encode($response);
         return;
     }
 
     if ($action == "get_app_setting") {
-        if (!$_SERVER["HTTP_REFERER"])
-            return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
         $id_app = (int)$_POST["app_id"];
-        
+
         $status_valid_user_app = valid_user_app($id_app, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response["status"] = 0;
             $response["error"] = -778;
             $response["message"] = "Доступ закрыт!";
@@ -391,7 +402,8 @@ if (isset($_POST["action"])) {
         $list_app_ = $row1_active["list_app"];
         $list_app_secret_key_ = $row1_active["list_secret_key"];
 
-        $row_active = $mysqli->query("SELECT `datetime` FROM `vk_app_sender_logs` WHERE `app_id`='" . $id_app . "' ORDER BY `id` DESC;");
+        $row_active = $mysqli->query("SELECT `datetime` FROM `vk_app_sender_logs` WHERE `app_id`='" .
+            $id_app . "' ORDER BY `id` DESC;");
         $row1_active = $row_active->fetch_assoc();
         if ($row1_active["datetime"])
             $last_datetime_sender_ = $row1_active["datetime"];
@@ -401,20 +413,21 @@ if (isset($_POST["action"])) {
 
         //if (isset($title_app_) && isset($list_app_) && isset($list_app_secret_key_)) {
         //Статистика
-        
+
         $datetime = time();
         $datetime_old = date("Y-m-d", $datetime);
         $day_next = time() + (1 * 24 * 60 * 60);
         $datetime_new = date("Y-m-d", $day_next);
-        
+
         $mysqli = connectDB();
-        $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_list` WHERE datetime between '{$datetime_old}' and '{$datetime_new}' AND `app_id`='" . $id_app . "';");
+        $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_list` WHERE datetime between '{$datetime_old}' and '{$datetime_new}' AND `app_id`='" .
+            $id_app . "';");
         $row6 = $row5->fetch_assoc();
         $count_day_send = $row6["count"];
         closeDB($mysqli);
         $limit_day_send = 3 - $count_day_send;
         $response["limit_day_send"] = $limit_day_send;
-        
+
         $count = explode("\r\n", $title_app_);
         $count = count($count);
 
@@ -439,7 +452,7 @@ if (isset($_POST["action"])) {
                 $response["app_title"] = $list_title_array[$i];
                 $response["app_id"] = $list_app_array[$i];
                 $response["app_secret_key"] = $list_app_secret_key_array[$i];
-                
+
                 $datetime = time();
                 $datetime_old = date("Y-m-d", $datetime);
                 $day_next = time() + (1 * 24 * 60 * 60);
@@ -460,84 +473,82 @@ if (isset($_POST["action"])) {
 
     //Отправка уведомлений
     if ($action == "sender_message") {
-        //if(!$_SERVER["HTTP_REFERER"])
-        //    return;
         
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = $return_vk_data["viewer_id"];
-        
-        if(isset($uid))
+        if (isset($uid))
             $uid = $uid;
         else
             $uid = $_POST["viewer_id"];
-        
+
         $id_app = (int)$_POST["app_id"];
         
         $status_valid_user_app = valid_user_app($id_app, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
+
         $status_valid_user_app = valid_user_app($id_app, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
-        if (isset($_POST["message"]))
-        {
+
+        if (isset($_POST["message"])) {
             $message = $_POST["message"];
             $type_send_ = 1;
-        }
-        else {
+        } else {
             $mysqli = connectDB();
-            $row5 = $mysqli->query("SELECT `message` FROM `vk_app_sender_autosend` WHERE `id_app`='" . $id_app . "';");
+            $row5 = $mysqli->query("SELECT `message` FROM `vk_app_sender_autosend` WHERE `id_app`='" .
+                $id_app . "';");
             $row6 = $row5->fetch_assoc();
             $message = $row6["message"];
             closeDB($mysqli);
             $type_send_ = 0;
         }
-        
+
         //Проверка
         $mysqli = connectDB();
-        $row_ = $mysqli->query("SELECT `datetime` FROM `vk_app_sender_logs` WHERE `app_id`='" . $id_app . "' ORDER BY `id` DESC;");
+        $row_ = $mysqli->query("SELECT `datetime` FROM `vk_app_sender_logs` WHERE `app_id`='" .
+            $id_app . "' ORDER BY `id` DESC;");
         $row_res = $row_->fetch_assoc();
         $datetime_old_send_ = $row_res["datetime"];
         closeDB($mysqli);
-        
+
         $time_ = explode(":", $datetime_old_send_);
-        $start = strtotime($time_[0].":".$time_[1].":".$time_[2]);
+        $start = strtotime($time_[0] . ":" . $time_[1] . ":" . $time_[2]);
         $old = $start + (60);
         $real_time = time();
-        
-        if($real_time > $old)
-        {
+
+        if ($real_time > $old) {
             $mysqli = connectDB();
-            $row_hash = $mysqli->query("SELECT `hash` FROM `vk_app_sender_list` WHERE `app_id`='" . $id_app . "' AND `status`='0' ORDER BY `id` DESC;");
+            $row_hash = $mysqli->query("SELECT `hash` FROM `vk_app_sender_list` WHERE `app_id`='" .
+                $id_app . "' AND `status`='0' ORDER BY `id` DESC;");
             $row_hash_ = $row_hash->fetch_assoc();
             $hash_sender_ = $row_hash_["hash"];
-            
-            $mysqli->query("UPDATE `vk_app_sender_list` SET `status`='1' WHERE `hash`='".$hash_sender_."';");
+
+            $mysqli->query("UPDATE `vk_app_sender_list` SET `status`='1' WHERE `hash`='" . $hash_sender_ .
+                "';");
             closeDB($mysqli);
         }
-        
+
         $first = (int)$_POST['fromid'];
+        if(isset($_POST['category'])) $category_ = (int)$_POST['category']; else $category_ = NULL;
         
         /****************** Progress ***************************/
         $mysqli = connectDB();
-        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE `id_app`='" . $id_app . "';");
+        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE `id_app`='" .
+            $id_app . "';");
         $row2 = $row1->fetch_assoc();
         $count_sFinish = $row2["count"];
         closeDB($mysqli);
         $progress_send = sprintf("%01.0f%", $first / $count_sFinish * 100, '');
         $progress_send = number_format($progress_send);
-        
+
         if ($count_sFinish < $first)
             $progress_send = 100;
-        
+
         $data_app = data_app($id_app);
         $title_app_ = $data_app["title_app"];
         $list_app_ = $data_app["id_app"];
@@ -552,13 +563,14 @@ if (isset($_POST["action"])) {
             $secret_key_app_select = $list_app_secret_key_array;
 
             $mysqli = connectDB();
-            
+
             $datetime = time();
             $datetime_old = date("Y-m-d", $datetime);
             $day_next = time() + (1 * 24 * 60 * 60);
             $datetime_new = date("Y-m-d", $day_next);
-            
-            $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_list` WHERE datetime between '{$datetime_old}' and '{$datetime_new}' AND `app_id`='" . $id_app_select . "' AND `status`='1';");
+
+            $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_list` WHERE datetime between '{$datetime_old}' and '{$datetime_new}' AND `app_id`='" .
+                $id_app_select . "' AND `status`='1';");
             $row6 = $row5->fetch_assoc();
             $count_day_send = $row6["count"];
             closeDB($mysqli);
@@ -566,7 +578,8 @@ if (isset($_POST["action"])) {
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
             /////////////////////
             $mysqli = connectDB();
-            $mysqli->real_query("SELECT `id_vk` FROM `vk_app_all_visits` WHERE `id_app`='" . $id_app_select . "' ORDER BY `date` DESC LIMIT " . $first . " , 100;");
+            $mysqli->real_query("SELECT `id_vk` FROM `vk_app_all_visits` WHERE `id_app`='" .
+                $id_app_select . "' ORDER BY `date` DESC LIMIT " . $first . " , 100;");
             $result = $mysqli->use_result();
 
             $userids = "";
@@ -585,31 +598,42 @@ if (isset($_POST["action"])) {
 
             $secret_key_app_select = trim($secret_key_app_select);
             $userids = trim($userids);
+            
+            if(isset($_POST['userids'])) { $userids_selected = $_POST['userids']; $userids_selected = trim($userids_selected); } else $userids_selected = NULL;
+            
+            if($category_ == 0)
+                $userids = userids_str_replace($userids, $userids_selected);
+            
+            if($category_ == 1)
+                $userids = $userids_selected;
+            
+            $userids = trim($userids);
 
             /*********************/
             $hash_sender_ = md5(time() . "SENDER_SEND");
             $mysqli = connectDB();
-            $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_list` WHERE `app_id`='" . $id_app_select . "' AND `status`='1' ORDER BY `id` DESC;");
+            $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_list` WHERE `app_id`='" .
+                $id_app_select . "' AND `status`='1' ORDER BY `id` DESC;");
             $row6 = $row5->fetch_assoc();
             $count_senser_list_ = $row6["count"];
             closeDB($mysqli);
-            
+
             if ($count_senser_list_ > 0) {
                 $mysqli = connectDB();
-                $row_datetime = $mysqli->query("SELECT `datetime` FROM `vk_app_sender_logs` WHERE `app_id`='".$id_app."' ORDER BY `id` DESC;");
+                $row_datetime = $mysqli->query("SELECT `datetime` FROM `vk_app_sender_logs` WHERE `app_id`='" .
+                    $id_app . "' ORDER BY `id` DESC;");
                 $row_datetime2 = $row_datetime->fetch_assoc();
                 $datetime = $row_datetime2["datetime"];
                 closeDB($mysqli);
-                
+
                 $time_ = explode(":", $datetime);
-                $start = strtotime($time_[0].":".$time_[1].":".$time_[2]);
+                $start = strtotime($time_[0] . ":" . $time_[1] . ":" . $time_[2]);
                 $old = $start + (60);
                 $real_time = time();
                 $time_ = time_(date("Y-m-d H:i:s", $old));
                 $time_ = explode(":", $time_);
-                
-                if($real_time > $old)
-                {
+
+                if ($real_time > $old) {
                     //исчерпан лимит в час
                     if ($time_[0] < 1) {
                         $response["status"] = 0;
@@ -619,7 +643,7 @@ if (isset($_POST["action"])) {
                     }
                 }
             }
-            
+
             //исчерпан лимит на день
             if ($count_day_send == 3) {
                 $response["status"] = 0;
@@ -627,35 +651,44 @@ if (isset($_POST["action"])) {
                 echo json_encode($response);
                 return;
             }
-            
+
             $message_send = $message;
-            
-            
+
+
             $mysqli = connectDB();
             $message = mysqli_real_escape_string($mysqli, $message);
-            
-            $row_hash = $mysqli->query("SELECT `hash` FROM `vk_app_sender_list` WHERE `app_id`='" . $id_app . "' AND `status`='0' ORDER BY `id` DESC;");
+
+            $row_hash = $mysqli->query("SELECT `hash` FROM `vk_app_sender_list` WHERE `app_id`='" .
+                $id_app . "' AND `status`='0' ORDER BY `id` DESC;");
             $row_hash_ = $row_hash->fetch_assoc();
             $hash_sender_old = $row_hash_["hash"];
-            
-            if($hash_sender_old && isset($hash_sender_old))
-            {
-                $mysqli->query("UPDATE `vk_app_sender_list` SET `progress`='".$progress_send."' WHERE `hash`='".$hash_sender_old."';");
-            } else
-                $mysqli->query("INSERT INTO `vk_app_sender_list` (`uid`, `hash`, `app_id`, `message`, `type`, `status`) VALUES ('" . $uid . "', '" . $hash_sender_ . "', '" . $id_app . "', '" . $message . "', '".$type_send_."', '0');");
-            
-            $mysqli->query("INSERT INTO `vk_app_sender_logs` (`uid`, `hash`, `app_id`, `message`) VALUES ('" . $uid . "', '" . $hash_sender_ . "', '" . $id_app . "', '" . $message . "');");
+
+            if ($hash_sender_old && isset($hash_sender_old)) {
+                $hash_list_ = "'" . $hash_sender_old . "'";
+                $mysqli->query("UPDATE `vk_app_sender_list` SET `progress`='" . $progress_send .
+                    "' WHERE `hash`='" . $hash_sender_old . "';");
+            } else {
+                $hash_list_ = "'" . $hash_sender_ . "'";
+                $mysqli->query("INSERT INTO `vk_app_sender_list` (`uid`, `hash`, `app_id`, `message`, `type`, `status`) VALUES ('" .
+                    $uid . "', '" . $hash_sender_ . "', '" . $id_app . "', '" . $message . "', '" .
+                    $type_send_ . "', '0');");
+            }
+
+            $mysqli->query("INSERT INTO `vk_app_sender_logs` (`uid`, `hash`, `hash_list`, `app_id`, `message`) VALUES ('" .
+                $uid . "', '" . $hash_sender_ . "', " . $hash_list_ . ", '" . $id_app . "', '" .
+                $message . "');");
             closeDB($mysqli);
-            
+
 
             $response["test"] = "Запрос : {$first} > " . $userids . "\n";
 
             /*********************/
             $VK = new vkapi($id_app, "" . $secret_key_app_select . "");
-            $resp = $VK->api('secure.sendNotification', array('user_ids' => "" . $userids . "", 'message' => "" . $message_send . ""));
+            $resp = $VK->api('secure.sendNotification', array('user_ids' => "" . $userids .
+                    "", 'message' => "" . $message_send . ""));
             $dom = new domDocument;
             $dom->loadXML($resp);
-            
+
             if (!$dom) {
                 $response["status"] = 0;
                 $response["error"] = -9999;
@@ -663,11 +696,13 @@ if (isset($_POST["action"])) {
                 echo json_encode($response);
                 return;
             }
-            
+
             $response["error"] = 0;
-            
+
             $mysqli = connectDB();
-            $mysqli->query("UPDATE `vk_app_sender_logs` SET `log`='" . $resp . "' WHERE `uid`='" . $uid . "' AND `app_id`='" . $id_app . "' AND `hash`='" . $hash_sender_ . "';");
+            $mysqli->query("UPDATE `vk_app_sender_logs` SET `log`='" . $resp .
+                "' WHERE `uid`='" . $uid . "' AND `app_id`='" . $id_app . "' AND `hash`='" . $hash_sender_ .
+                "';");
             closeDB($mysqli);
 
         } else {
@@ -682,52 +717,53 @@ if (isset($_POST["action"])) {
     if ($action == "set_sender_list") {
         //if(!$_SERVER["HTTP_REFERER"])
         //    return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = $return_vk_data["viewer_id"];
-        
-        if(isset($uid))
+
+        //$return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+        //$uid = $return_vk_data["viewer_id"];
+
+        if (isset($uid))
             $uid = $uid;
         else
             $uid = $_POST["viewer_id"];
-        
+
         $id_app = $_POST["app_id"];
-        
+
         $status_valid_user_app = valid_user_app($id_app, $uid);
-        if($status_valid_user_app["status"] == 0) {
-            $response = "";
-            echo json_encode($response);
-            return;
-        }
-        
-        $status_valid_user_app = valid_user_app($id_app, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
 
-        if (isset($_POST["message"]))
-        {
+        $status_valid_user_app = valid_user_app($id_app, $uid);
+        if ($status_valid_user_app["status"] == 0) {
+            $response = "";
+            echo json_encode($response);
+            return;
+        }
+
+        if (isset($_POST["message"])) {
             $message = $_POST["message"];
             $type_send_ = 1;
-        }
-        else {
+        } else {
             $mysqli = connectDB();
-            $row5 = $mysqli->query("SELECT `message` FROM `vk_app_sender_autosend` WHERE `id_app`='" . $id_app . "';");
+            $row5 = $mysqli->query("SELECT `message` FROM `vk_app_sender_autosend` WHERE `id_app`='" .
+                $id_app . "';");
             $row6 = $row5->fetch_assoc();
             $message = $row6["message"];
             closeDB($mysqli);
             $type_send_ = 0;
         }
-        
+
         $mysqli = connectDB();
-        $row_hash = $mysqli->query("SELECT `hash` FROM `vk_app_sender_list` WHERE `app_id`='" . $id_app . "' AND `status`='0' ORDER BY `id` DESC;");
+        $row_hash = $mysqli->query("SELECT `hash` FROM `vk_app_sender_list` WHERE `app_id`='" .
+            $id_app . "' AND `status`='0' ORDER BY `id` DESC;");
         $row_hash_ = $row_hash->fetch_assoc();
         $hash_sender_ = $row_hash_["hash"];
-        
+
         $message = mysqli_real_escape_string($mysqli, $message);
-        $mysqli->query("UPDATE `vk_app_sender_list` SET `status`='1' WHERE `hash`='".$hash_sender_."';");
+        $mysqli->query("UPDATE `vk_app_sender_list` SET `status`='1' WHERE `hash`='" . $hash_sender_ .
+            "';");
         $response["status"] = 1;
         closeDB($mysqli);
         echo json_encode($response);
@@ -737,23 +773,23 @@ if (isset($_POST["action"])) {
     if ($action == "set_setting_app_data") {
         if (!$_SERVER["HTTP_REFERER"])
             return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
-        
+
+        //$return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+        //$uid = (int)$return_vk_data["viewer_id"];
+
         $title_app = $_POST["title_app"];
         $app_id = (int)$_POST["app_id"];
         $app_id_new = (int)$_POST["app_id_new"];
-        
+
         $status_valid_user_app = valid_user_app($app_id_new, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
+
         $key_app = $_POST["key_app"];
-        
+
         $valid_app_ = valid_app($app_id_new);
         $response["valid_app"] = $valid_app_;
 
@@ -762,9 +798,8 @@ if (isset($_POST["action"])) {
             echo json_encode($response);
             return;
         }
-        
-        if(!check_secure_key($app_id_new, "{$key_app}"))
-        {
+
+        if (!check_secure_key($app_id_new, "{$key_app}")) {
             $response["valid_secure_key"] = 0;
             $response["message"] = "Вы ввели неверный Защищённый ключ!";
             echo json_encode($response);
@@ -816,11 +851,16 @@ if (isset($_POST["action"])) {
                             $response["error"] = 0;
 
                             if ($app_id_new != $id_app_selected) {
-                                $mysqli->query("UPDATE `vk_app_all_visits` SET `id_app`='" . $app_id_new . "' WHERE `id_app`='" . $app_id . "';");
-                                $mysqli->query("UPDATE `vk_app_all_visits_logs` SET `id_app`='" . $app_id_new . "' WHERE `id_app`='" . $app_id . "';");
-                                $mysqli->query("UPDATE `vk_app_sender_list` SET `app_id`='" . $app_id_new . "' WHERE `app_id`='" . $app_id . "';");
-                                $mysqli->query("UPDATE `vk_app_sender_logs` SET `app_id`='" . $app_id_new . "' WHERE `app_id`='" . $app_id . "';");
-                                $mysqli->query("UPDATE `vk_app_export` SET `id_app`='" . $app_id_new . "' WHERE `id_app`='" . $app_id . "';");
+                                $mysqli->query("UPDATE `vk_app_all_visits` SET `id_app`='" . $app_id_new .
+                                    "' WHERE `id_app`='" . $app_id . "';");
+                                $mysqli->query("UPDATE `vk_app_all_visits_logs` SET `id_app`='" . $app_id_new .
+                                    "' WHERE `id_app`='" . $app_id . "';");
+                                $mysqli->query("UPDATE `vk_app_sender_list` SET `app_id`='" . $app_id_new .
+                                    "' WHERE `app_id`='" . $app_id . "';");
+                                $mysqli->query("UPDATE `vk_app_sender_logs` SET `app_id`='" . $app_id_new .
+                                    "' WHERE `app_id`='" . $app_id . "';");
+                                $mysqli->query("UPDATE `vk_app_export` SET `id_app`='" . $app_id_new .
+                                    "' WHERE `id_app`='" . $app_id . "';");
 
                                 update_remote_control($app_id, $app_id_new);
                             }
@@ -839,42 +879,50 @@ if (isset($_POST["action"])) {
     }
 
     if ($action == "load_list_send_") {
-        
+
         if (!$_SERVER["HTTP_REFERER"])
             return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
+
+        //$return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+        //$uid = (int)$return_vk_data["viewer_id"];
         $app_id = $_POST["app_id"];
-        
+
         $status_valid_user_app = valid_user_app($app_id, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
 
         $mysqli = connectDB();
-        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_list` WHERE `app_id`='" . $app_id . "';");
+        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_list` WHERE `app_id`='" .
+            $app_id . "';");
         $row2 = $row1->fetch_assoc();
         $count = $row2["count"];
         $response["count"] = $count;
 
-        $mysqli->real_query("SELECT `id`, `message`, `datetime`, `type` FROM `vk_app_sender_list` WHERE `app_id`='" . $app_id . "' ORDER BY `datetime` DESC LIMIT 0 , 3;");
+        $mysqli->real_query("SELECT `id`, `message`, `datetime`, `type` FROM `vk_app_sender_list` WHERE `app_id`='" .
+            $app_id . "' ORDER BY `datetime` DESC LIMIT 0 , 3;");
         $result = $mysqli->use_result();
 
         $response["response"] = array();
         while ($row = $result->fetch_assoc()) {
             $post["datetime"] = $row["datetime"];
             $post["message"] = $row["message"];
-            if($row["type"] == 1) $type_send_ = "<span class=\"label label-primary\" title=\"Ручная отправка\">Р</span>"; else $type_send_ = "<span class=\"label label-default\" title=\"Автоматическая отправка\">А</span>";
+            if ($row["type"] == 1)
+                $type_send_ = "<span class=\"label label-primary\" title=\"Ручная отправка\">Р</span>";
+            else
+                $type_send_ = "<span class=\"label label-default\" title=\"Автоматическая отправка\">А</span>";
             $post["type_sender"] = $type_send_;
-            $post["info_sender"] = '<img id="info_sender_" onclick="javascript:app.showDialog(\'Информация о уведомлении\',app.getTemplate(\'InfoSenderSelect\'),buttons_default);setTimeout(function() { info_sender('.$row["id"].'); }, 700);;" style="cursor: pointer;" src="//ploader.ru/vkapp/sender/images/app_info.png" width="24" height="24" title="Информация о уведомлении" />';
-            
+            $post["info_sender"] =
+                '<img id="info_sender_" onclick="javascript:app.showDialog(\'Информация о уведомлении\',app.getTemplate(\'InfoSenderSelect\'),buttons_default);setTimeout(function() { info_sender(' .
+                $row["id"] . '); }, 700);;" style="cursor: pointer;" src="//ploader.ru/vkapp/sender/images/app_info.png" width="24" height="24" title="Информация о уведомлении" />';
+
             $response_send_list = inform_select_send($app_id, $row["id"]);
             $valid_error = (strpos($response_send_list["log"], "<error>"));
-            if($valid_error)
-                $post["delete_sender"] = '<img id="delete_sender_" onclick="javascript:;" style="cursor: pointer;" src="//ploader.ru/vkapp/sender/images/delete.png" title="Удалить">';
+            if ($valid_error)
+                $post["delete_sender"] =
+                    '<img id="delete_sender_" onclick="javascript:;" style="cursor: pointer;" src="//ploader.ru/vkapp/sender/images/delete.png" title="Удалить">';
             else
                 $post["delete_sender"] = 0;
             array_push($response["response"], $post);
@@ -892,7 +940,7 @@ if (isset($_POST["action"])) {
     
     $order_id_ = $_POST["order_id"];
     
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+    $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
     $api_id_ = $return_vk_data["api_id"];
     $uid_ = $return_vk_data["viewer_id"];
     $auth_key_ = $return_vk_data["auth_key"];
@@ -932,40 +980,46 @@ if (isset($_POST["action"])) {
     */
 
     if ($action == "load_visits_app") {
-        
+
         if (!$_SERVER["HTTP_REFERER"])
             return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
+
+        //$return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+        //$uid = (int)$return_vk_data["viewer_id"];
         $id_app = (int)$_POST["app_id"];
-        
+
         $status_valid_user_app = valid_user_app($id_app, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
+
         $status_valid_user_app = valid_user_app($id_app, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
-        if(isset($_POST["start"])) $start = (int)$_POST["start"]; else $start = 0;
-        
+
+        if (isset($_POST["start"]))
+            $start = (int)$_POST["start"];
+        else
+            $start = 0;
+
         $number_page = 50;
-        
+
         $mysqli = connectDB();
-        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE `id_app`='" . $id_app . "';");
+        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE `id_app`='" .
+            $id_app . "';");
         $row2 = $row1->fetch_assoc();
         $count = $row2["count"];
 
         $response["count"] = $count;
 
-        $mysqli->real_query("SELECT `name`, `id_vk`, `date`, `visits` FROM `vk_app_all_visits` WHERE `id_app`='" . $id_app . "' ORDER BY `date` DESC,`visits` DESC LIMIT ".$start." , ".$number_page.";");
+        $mysqli->real_query("SELECT `name`, `id_vk`, `date`, `visits` FROM `vk_app_all_visits` WHERE `id_app`='" .
+            $id_app . "' ORDER BY `date` DESC,`visits` DESC LIMIT " . $start . " , " . $number_page .
+            ";");
         $result = $mysqli->use_result();
 
         $response["response"] = array();
@@ -974,10 +1028,12 @@ if (isset($_POST["action"])) {
             $post["name"] = "<a href='//vk.com/id{$row["id_vk"]}' target='_blank'>{$row["name"]}</a>";
             $post["datetime"] = $row["date"];
             $post["visits"] = $row["visits"] + 1;
-            $post["info_user_logs"] = '<img id="info_user_logs_" onclick="javascript:app.showDialog(\'Информация о посещениях пользователя\',app.getTemplate(\'InfoUserLogSelect\'),buttons_default);setTimeout(function() { info_user_logs('.$row["id_vk"].', 0); }, 700);;" style="cursor: pointer;" src="//ploader.ru/vkapp/sender/images/app_info.png" width="24" height="24" title="Информация о посещениях пользователя" />';
+            $post["info_user_logs"] =
+                '<img id="info_user_logs_" onclick="javascript:app.showDialog(\'Информация о посещениях пользователя\',app.getTemplate(\'InfoUserLogSelect\'),buttons_default);setTimeout(function() { info_user_logs(' .
+                $row["id_vk"] . ', 0); }, 700);;" style="cursor: pointer;" src="//ploader.ru/vkapp/sender/images/app_info.png" width="24" height="24" title="Информация о посещениях пользователя" />';
             array_push($response["response"], $post);
         }
-        
+
         closeDB($mysqli);
         $response["all_page"] = $count;
 
@@ -988,9 +1044,9 @@ if (isset($_POST["action"])) {
     if ($action == "set_photo_app") {
         if (!$_SERVER["HTTP_REFERER"])
             return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = $return_vk_data["viewer_id"];
+
+        //$return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+        //$uid = $return_vk_data["viewer_id"];
 
         if ($uid == 26887374) {
             $response["title"] = "";
@@ -1014,13 +1070,13 @@ if (isset($_POST["action"])) {
     if ($action == "delete_app") {
         if (!$_SERVER["HTTP_REFERER"])
             return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
+
+        //$return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+        //$uid = (int)$return_vk_data["viewer_id"];
         $app_id = (int)$_POST["app_id"];
-        
+
         $status_valid_user_app = valid_user_app($app_id, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
@@ -1057,18 +1113,32 @@ if (isset($_POST["action"])) {
                         $secret_key_app_select = $list_app_secret_key_array[$i];
 
                         $title_delete = delete_app($list_title_select, $count, $title_app_);
-                        if($title_delete) $title_delete = "'{$title_delete}'"; else $title_delete = "NULL";
+                        if ($title_delete)
+                            $title_delete = "'{$title_delete}'";
+                        else
+                            $title_delete = "NULL";
                         $id_app_delete = delete_app($id_app_select, $count, $list_app_);
-                        if($id_app_delete) $id_app_delete = "'{$id_app_delete}'"; else $id_app_delete = "NULL";
+                        if ($id_app_delete)
+                            $id_app_delete = "'{$id_app_delete}'";
+                        else
+                            $id_app_delete = "NULL";
                         $secret_key_delete = delete_app($secret_key_app_select, $count, $list_app_secret_key_);
-                        if($secret_key_delete) $secret_key_delete = "'{$secret_key_delete}'"; else $secret_key_delete = "NULL";
-                        
+                        if ($secret_key_delete)
+                            $secret_key_delete = "'{$secret_key_delete}'";
+                        else
+                            $secret_key_delete = "NULL";
+
                         $mysqli = connectDB();
-                        $mysqli->query("UPDATE `vk_app_sender_visits` SET `title_app`={$title_delete}, `list_app`={$id_app_delete}, `list_secret_key`={$secret_key_delete} WHERE `uid`='" . $uid . "';");
-                        $mysqli->query("DELETE FROM `vk_app_all_visits` WHERE `id_app`='" . $app_id . "';");
-                        $mysqli->query("DELETE FROM `vk_app_all_visits_logs` WHERE `id_app`='" . $app_id . "';");
-                        $mysqli->query("DELETE FROM `vk_app_sender_logs` WHERE `app_id`='" . $app_id . "';");
-                        $mysqli->query("DELETE FROM `vk_app_sender_list` WHERE `app_id`='" . $app_id . "';");
+                        $mysqli->query("UPDATE `vk_app_sender_visits` SET `title_app`={$title_delete}, `list_app`={$id_app_delete}, `list_secret_key`={$secret_key_delete} WHERE `uid`='" .
+                            $uid . "';");
+                        $mysqli->query("DELETE FROM `vk_app_all_visits` WHERE `id_app`='" . $app_id .
+                            "';");
+                        $mysqli->query("DELETE FROM `vk_app_all_visits_logs` WHERE `id_app`='" . $app_id .
+                            "';");
+                        $mysqli->query("DELETE FROM `vk_app_sender_logs` WHERE `app_id`='" . $app_id .
+                            "';");
+                        $mysqli->query("DELETE FROM `vk_app_sender_list` WHERE `app_id`='" . $app_id .
+                            "';");
                         closeDB($mysqli);
                     }
                 }
@@ -1083,29 +1153,26 @@ if (isset($_POST["action"])) {
 
     //Поиск пользователя
     if ($action == "search_user") {
-        
+
         if (!$_SERVER["HTTP_REFERER"])
             return;
         
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
-        $app_id = (int)$_POST["app_id"];
-        
-        $status_valid_user_app = valid_user_app($app_id, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        $status_valid_user_app = valid_user_app($id_app, $uid);
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
+
         $uid_search_ = (int)$_POST["uid_search"];
 
         $response["status"] = 0;
         $response["message"] = "Пользователь не найден в приложении!";
 
-        if (isset($app_id) && isset($uid_search_)) {
+        if (isset($id_app) && isset($uid_search_)) {
             $mysqli = connectDB();
-            $query = "SELECT `date`, `visits` FROM `vk_app_all_visits` WHERE `id_app`='" . $app_id . "' AND `id_vk`='" . $uid_search_ . "';";
+            $query = "SELECT `date`, `visits` FROM `vk_app_all_visits` WHERE `id_app`='" . $id_app .
+                "' AND `id_vk`='" . $uid_search_ . "';";
             if (mysqli_multi_query($mysqli, $query)) {
                 do {
                     /* получаем первый результирующий набор */
@@ -1131,25 +1198,22 @@ if (isset($_POST["action"])) {
 
     //Автоматическая отправка уведомлений
     if ($action == "autosend_load_ations") {
-        
+
         if (!$_SERVER["HTTP_REFERER"])
             return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
-        $app_id = (int)$_POST["app_id"];
-        
-        $status_valid_user_app = valid_user_app($app_id, $uid);
-        if($status_valid_user_app["status"] == 0) {
+
+        $status_valid_user_app = valid_user_app($id_app, $uid);
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
+
         $i_first = 0;
 
         $mysqli = connectDB();
-        $query = "SELECT `message`, `datetime_start`, `progress`, `status` FROM `vk_app_sender_autosend` WHERE `id_app`='" . $app_id . "' ORDER BY `id` ASC LIMIT 0 , 15;";
+        $query = "SELECT `message`, `datetime_start`, `progress`, `status` FROM `vk_app_sender_autosend` WHERE `id_app`='" .
+            $id_app . "' ORDER BY `id` ASC LIMIT 0 , 15;";
         $response["response"] = array();
         if (mysqli_multi_query($mysqli, $query)) {
             do {
@@ -1188,122 +1252,123 @@ if (isset($_POST["action"])) {
     }
 
     if ($action == "autosend_add_aсtions") {
-        
+
         if (!$_SERVER["HTTP_REFERER"])
             return;
         
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid_ = (int)$return_vk_data["viewer_id"];
-        $app_id_ = (int)$_POST["app_id"];
-        
-        $status_valid_user_app = valid_user_app($app_id_, $uid_);
-        if($status_valid_user_app["status"] == 0) {
+        $status_valid_user_app = valid_user_app($id_app, $uid);
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
+
         $message_ = $_POST["message"];
         $datetime_ = $_POST["datetime"];
-        
-        if(strtotime($datetime_) < time())
-        {
+
+        if (strtotime($datetime_) < time()) {
             $response["status"] = 0;
             $response["error"] = -7;
             $response["message"] = "Вы выбрали Дату которая уже прошла!";
             echo json_encode($response);
             return;
         }
-        
+
         $mysqli = connectDB();
         $datetime = date("Y-m-d", strtotime($datetime_));
         $day_next = strtotime($datetime) + (1 * 24 * 60 * 60);
         $datetime_new = date("Y-m-d", $day_next);
-        
-        $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_list` WHERE datetime between '{$datetime}' and '{$datetime_new}' AND `app_id`='" . $app_id_ . "';");
+
+        $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_list` WHERE datetime between '{$datetime}' and '{$datetime_new}' AND `app_id`='" .
+            $id_app . "';");
         $row6 = $row5->fetch_assoc();
         $count_day_send = $row6["count"];
-        
-        $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_autosend` WHERE datetime_start between '{$datetime}' and '{$datetime_new}' AND `id_app`='" . $app_id_ . "';");
+
+        $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_autosend` WHERE datetime_start between '{$datetime}' and '{$datetime_new}' AND `id_app`='" .
+            $id_app . "';");
         $row6 = $row5->fetch_assoc();
         $count_day_auto_send = $row6["count"];
         closeDB($mysqli);
-        
+
         /*
         $time_ = time_($datetime_);
         $time_ = explode(":", $time_);
         
         //исчерпан лимит в этот час
         if ($time_[0] < 1 && $time_[1] < 59) {
-            $response["status"] = 0;
-            $response["message"] = "В этом часе лимит уведомлений исчерпан, выберите другое время отправки.";
-            $response["error"] = -3;
-            echo json_encode($response);
-            return;
+        $response["status"] = 0;
+        $response["message"] = "В этом часе лимит уведомлений исчерпан, выберите другое время отправки.";
+        $response["error"] = -3;
+        echo json_encode($response);
+        return;
         }
         */
-        
+
         //исчерпан лимит в этот день
         if ($count_day_send == 3 || $count_day_auto_send == 3) {
             $response["status"] = 0;
-            $response["message"] = "В этом дне исчерпан лимит уведомлений, выберите другую дату для отправки уведомления.";
+            $response["message"] =
+                "В этом дне исчерпан лимит уведомлений, выберите другую дату для отправки уведомления.";
             $response["error"] = -2;
             echo json_encode($response);
             return;
         }
-        
-        $hash_sender_ = md5("{$app_id_}{$message_}{$datetime_}" . "SENDER_SEND_LIST");
-        
+
+        $hash_sender_ = md5("{$id_app}{$message_}{$datetime_}" . "SENDER_SEND_LIST");
+
         $mysqli = connectDB();
         $message_ = mysqli_real_escape_string($mysqli, $message_);
-        if ($mysqli->query("INSERT INTO `vk_app_sender_autosend` (`hash`, `id_app`, `uid`, `message`, `datetime_start`) VALUES ('" . $hash_sender_ . "', '" . $app_id_ . "', '" . $uid_ . "', '" . $message_ . "', '" . $datetime_ . "');")) {
+        if ($mysqli->query("INSERT INTO `vk_app_sender_autosend` (`hash`, `id_app`, `uid`, `message`, `datetime_start`) VALUES ('" .
+            $hash_sender_ . "', '" . $id_app . "', '" . $uid . "', '" . $message_ . "', '" .
+            $datetime_ . "');")) {
             $response["status"] = 1;
-            add_cron($datetime_, "/var/www/kykyiiikuh/data/PythonScripts/vkapp/sender/autosend.py");
+            add_cron($datetime_,
+                "/var/www/kykyiiikuh/data/PythonScripts/vkapp/sender/autosend.py");
         } else
             $response["status"] = 0;
         closeDB($mysqli);
-        
+
         echo json_encode($response);
         return;
     }
 
     //Общий Доступ
     if ($action == "users_list_sharing") {
-        
+
         if (!$_SERVER["HTTP_REFERER"])
             return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
+
+        //$return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+        //$uid = (int)$return_vk_data["viewer_id"];
         $app_id = (int)$_POST["app_id"];
-        
+
         $status_valid_user_app = valid_user_app($app_id, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
+
         echo json_encode(search_remote_control($app_id));
         return;
     }
 
     if ($action == "users_delete_sharing") {
-        
+
         if (!$_SERVER["HTTP_REFERER"])
             return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
+
+        //$return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+        //$uid = (int)$return_vk_data["viewer_id"];
         $app_id = (int)$_POST["app_id"];
-        
+
         $status_valid_user_app = valid_user_app($app_id, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
+
         $uid_remote_ = (int)$_POST["uid_remote"];
 
         if (delete_remote_control($app_id, true, $uid_remote_) == true)
@@ -1318,24 +1383,25 @@ if (isset($_POST["action"])) {
     if ($action == "users_add_sharing") {
         if (!$_SERVER["HTTP_REFERER"])
             return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid_remote_ = (int)$return_vk_data["viewer_id"];
-        
+
+        //$return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+        //$uid_remote_ = (int)$return_vk_data["viewer_id"];
+
         $app_id = (int)$_POST["app_id"];
-        
+
         $status_valid_user_app = valid_user_app($app_id, $uid_remote_);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
+
         $uid_added_ = (int)$_POST["uid_added"];
 
         if (repetition_remote_control($uid_added_, $app_id)) {
             $response["status"] = -2;
-            $response["message"] = "Ошибка: Данный пользователь уже добавлен в общий доступ!";
+            $response["message"] =
+                "Ошибка: Данный пользователь уже добавлен в общий доступ!";
             echo json_encode($response);
             return;
         }
@@ -1358,32 +1424,33 @@ if (isset($_POST["action"])) {
         echo json_encode($response);
         return;
     }
-    
+
     //Export
-    
+
     if ($action == "export_add") {
-        
+
         if (!$_SERVER["HTTP_REFERER"])
             return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid_remote_ = (int)$return_vk_data["viewer_id"];
+
+        //$return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+        //$uid_remote_ = (int)$return_vk_data["viewer_id"];
         $app_id = (int)$_POST["app_id"];
-        
+
         $status_valid_user_app = valid_user_app($app_id, $uid_remote_);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
+
         $response["status"] = 0;
-        
+
         $mysqli = connectDB();
-        $hash_ = md5($app_id . $uid_remote_ . date("Y-m-d H:i:s"). "SENDER_EXPORT");
-        
-        if($mysqli->query("INSERT INTO `vk_app_export` (`hash`, `id_app`, `uid`, `datetime`) VALUES ('".$hash_."', '".$app_id."', '".$uid_remote_."', '".date("Y-m-d H:i:s")."');"))
-        {
+        $hash_ = md5($app_id . $uid_remote_ . date("Y-m-d H:i:s") . "SENDER_EXPORT");
+
+        if ($mysqli->query("INSERT INTO `vk_app_export` (`hash`, `id_app`, `uid`, `datetime`) VALUES ('" .
+            $hash_ . "', '" . $app_id . "', '" . $uid_remote_ . "', '" . date("Y-m-d H:i:s") .
+            "');")) {
             $response["status"] = 1;
             export($app_id, $uid_remote_, $hash_);
         }
@@ -1391,28 +1458,29 @@ if (isset($_POST["action"])) {
         echo json_encode($response);
         return;
     }
-    
+
     if ($action == "export_list") {
-        
+
         if (!$_SERVER["HTTP_REFERER"])
             return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
-        
+
+        //$return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+        //$uid = (int)$return_vk_data["viewer_id"];
+
         $app_id = (int)$_POST["app_id"];
-        
+
         $status_valid_user_app = valid_user_app($app_id, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
+
         $i_first = 0;
 
         $mysqli = connectDB();
-        $query = "SELECT `file`, `datetime`, `progress`, `status` FROM `vk_app_export` WHERE `id_app`='" . $app_id . "' ORDER BY `id` DESC LIMIT 0 , 15;";
+        $query = "SELECT `file`, `datetime`, `progress`, `status` FROM `vk_app_export` WHERE `id_app`='" .
+            $app_id . "' ORDER BY `id` DESC LIMIT 0 , 15;";
         $response["response"] = array();
         if (mysqli_multi_query($mysqli, $query)) {
             do {
@@ -1426,16 +1494,14 @@ if (isset($_POST["action"])) {
                         $progress_ = $row[2];
                         $status_ = $row[3];
 
-                        if ($progress_ != 100)
-                        {
-                            if($progress_ == 0)
+                        if ($progress_ != 100) {
+                            if ($progress_ == 0)
                                 $status_ = "Ждёт выполения";
                             else
                                 $status_ = "Выполняется";
-                        }
-                        else
+                        } else
                             $status_ = "Выполнено";
-                        
+
                         $post["datetime"] = $datetime_start_;
                         $post["progress"] = $progress_;
                         $post["status"] = $status_;
@@ -1451,73 +1517,91 @@ if (isset($_POST["action"])) {
         echo json_encode($response);
         return;
     }
-    
+
     if ($action == "inform_select_send") {
-        
+
         if (!$_SERVER["HTTP_REFERER"])
             return;
-        
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
-        
+
+        //$return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
+        //$uid = (int)$return_vk_data["viewer_id"];
+
         $send_id = (int)$_POST["send_id"];
         $app_id = (int)$_POST["app_id"];
-        
+
         $status_valid_user_app = valid_user_app($app_id, $uid);
-        if($status_valid_user_app["status"] == 0) {
+        if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
-        
+
         $response = inform_select_send($app_id, $send_id);
+
+        echo json_encode($response);
+        return;
+    }
+
+    if ($action == "load_visits_app_logs") {
+        if (!$_SERVER["HTTP_REFERER"])
+            return;
+        
+        $uid_ = (int)$_POST["uid"];
+
+        $status_valid_user_app = valid_user_app($id_app, $uid);
+        if ($status_valid_user_app["status"] == 0) {
+            $response = "";
+            echo json_encode($response);
+            return;
+        }
+
+        if (isset($_POST["start"]))
+            $start = (int)$_POST["start"];
+        else
+            $start = 0;
+
+        $number_page = 15;
+
+        $mysqli = connectDB();
+        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits_logs` WHERE `id_app`='" .
+            $id_app . "' AND `id_vk`='" . $uid_ . "';");
+        $row2 = $row1->fetch_assoc();
+        $count = $row2["count"];
+
+        $response["count"] = $count;
+
+        $mysqli->real_query("SELECT `date` FROM `vk_app_all_visits_logs` WHERE `id_app`='" .
+            $id_app . "' AND `id_vk`='" . $uid_ . "' ORDER BY `date` DESC LIMIT " . $start .
+            " , " . $number_page . ";");
+        $result = $mysqli->use_result();
+
+        $response["response"] = array();
+
+        while ($row = $result->fetch_assoc()) {
+            $post["datetime"] = $row["date"];
+            array_push($response["response"], $post);
+        }
+
+        closeDB($mysqli);
+        $response["all_page"] = $count;
         
         echo json_encode($response);
         return;
     }
     
-    if ($action == "load_visits_app_logs") {
+    if ($action == "load_selected_send_user") {
         if (!$_SERVER["HTTP_REFERER"])
             return;
         
-        $return_vk_data = convertUrlQuery($_SERVER["HTTP_REFERER"]);
-        $uid = (int)$return_vk_data["viewer_id"];
-        
-        $id_app = (int)$_POST["app_id"];
-        $uid_ = (int)$_POST["uid"];
-        
-        $status_valid_user_app = valid_user_app($id_app, $uid);
-        if($status_valid_user_app["status"] == 0) {
-            $response = "";
+        if(isset($_POST["count_page"])) $count_page = $_POST["count_page"]; else {
+            $response["error"] = "-3";
             echo json_encode($response);
             return;
         }
         
-        if(isset($_POST["start"])) $start = (int)$_POST["start"]; else $start = 0;
+        $first = (int)$_POST['count_page'];
         
-        $number_page = 15;
-        
-        $mysqli = connectDB();
-        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits_logs` WHERE `id_app`='" . $id_app . "' AND `id_vk`='".$uid_."';");
-        $row2 = $row1->fetch_assoc();
-        $count = $row2["count"];
-        
-        $response["count"] = $count;
-        
-        $mysqli->real_query("SELECT `date` FROM `vk_app_all_visits_logs` WHERE `id_app`='" . $id_app . "' AND `id_vk`='".$uid_."' ORDER BY `date` DESC LIMIT ".$start." , ".$number_page.";");
-        $result = $mysqli->use_result();
-        
-        $response["response"] = array();
-        
-        while ($row = $result->fetch_assoc()) {
-            $post["datetime"] = $row["date"];
-            array_push($response["response"], $post);
-        }
-        
-        closeDB($mysqli);
-        $response["all_page"] = $count;
-        
-        echo json_encode($response);
+        echo json_encode(selected_send_user($id_app, $count_page, $first));
         return;
     }
     

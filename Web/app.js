@@ -1,4 +1,4 @@
-Array.prototype.IS_ARRAY = true;
+//Array.prototype.IS_ARRAY = true;
 
 var host_server = "//ploader.ru/sender/api/load.html", vars;
 var host_server_js = "//ploader.ru/vkapp/sender/js/sender";
@@ -13,9 +13,9 @@ var buttons_export={'select':{label: 'Закрыть', callback: function(){
 }}};
 
 var control_remote_ = 0;
+var selected_user_send = [];
 
-app.run=function(){
-    
+app.run=function(){    
     RegisterVisits(); LoadApp();
     
     //Модальные окна
@@ -23,6 +23,11 @@ app.run=function(){
     $('#add_app').on('click', function(){
         app.showDialog('Добавить приложение',app.getTemplate('AddNewApp'),buttons_add_app); }
 	);
+    
+    $('#sender_uids_select').on('click', function(){
+        app.showDialog('Выбираем кому отправить',app.getTemplate('SelectSendUser'),buttons_default);
+        SelectSendUser("send_all_except");
+    });
     
     $('#settings_app_').on('click', function(){
         if(control_remote_ == 0)
@@ -55,7 +60,7 @@ app.run=function(){
     
     //Поменяли приложение вывод информации
     $('#apps').change(function(e)
-                                {                                    
+                                {
                                     $("#sender_status_").html("");
                                     $("#message_sender").val("");
                                     $('#search_user_list').html("");
@@ -150,12 +155,6 @@ function fisrt_start()
         $('#big_loading').html('');
         document.getElementById("added_app_not_function").style.display = 'none';
         
-        var info_user = getIdVK();
-        var uid = info_user['viewer_id'];
-        
-        if(uid == 183066854)
-            document.getElementById("working").style.display = '';
-        
         document.getElementById("info_app").style.display = '';
         document.getElementById("static_app").style.display = '';
         document.getElementById("info_send_list").style.display = '';
@@ -239,12 +238,42 @@ function sender_send() {
     var info_user = getIdVK();
     var uid = info_user['viewer_id'];
     
+    var category_;
+    var userids;
+    
+    console.log(selected_user_send[0]);
+    console.log(selected_user_send[1]);
+    //return;
+    
+    if(selected_user_send[0])
+    {
+        category_ = 0;
+        userids = selected_user_send[0];
+    }
+    
+    if(selected_user_send[1])
+    {
+        category_ = 1;
+        userids = selected_user_send[1];
+    }
+    
+    if(selected_user_send[0] && selected_user_send[1])
+    {
+        document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+        document.getElementById("message_sender").removeAttribute("disabled", "disabled");
+        document.getElementById("apps").removeAttribute("disabled", "disabled");
+        app.showAlert("Выберите один из методов отправки!");
+        return;
+    }
+    
     //Отправка уведомления
     $.post(host_server, {
         action: "sender_message",
         app_id: id_app,
         message: message_send,
-        fromid: sCurrent
+        fromid: sCurrent,
+        category: category_,
+        userids: userids
     }, function(data) {
         if(data.status == 1)
         {
@@ -333,6 +362,7 @@ function onAjaxSuccess()
 //Выбрали приложение убираем блокировку с input полей
 function select_app() {    
     document.getElementById("code_add_your_app_").style.display = '';
+	$("#sender_status_").text("В данный момент уведомление будет отправлено всем пользователям!");
 }
 
 //Очистка
@@ -888,6 +918,37 @@ function Import() {
 //Удаление уведомления
 function delete_sender(id_sender) {
     
+}
+
+//Выбираем кому отправить уведомление
+function SelectSendUser() {
+    var url = "//ploader.ru/vkapp/sender/js/select2/select2.js";
+    $.getScript( url, function() {
+        $(function () {
+            var url = "//ploader.ru/vkapp/sender/js/select2/select2_locale_ru.js";
+            $.getScript( url, function() {
+                $(function () {
+                    $('#e9').children().remove();
+                    $('#e10').children().remove();
+                    
+                    $("#e9").select2({
+                        placeholder: "Список пользователей"
+                    });
+                    
+                    $("#e10").select2({
+                        placeholder: "Список пользователей"
+                    });
+                    
+                    var url = host_server_js+"/SelectSendUser.js?";
+                    $.getScript( url, function() {
+                        $(function () {
+                            params();
+                        });
+                    });
+                });
+            });
+        });
+    });
 }
 
 //Получаем VK ID пользователя

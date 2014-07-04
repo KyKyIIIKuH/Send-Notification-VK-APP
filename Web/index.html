@@ -193,6 +193,27 @@
 </script>
 <!-- Импорт -->
 
+<!-- Выбираем кому отправить уведомление -->
+<script type="text/html" id="tmplSelectSendUser">
+    <ul id="myTab" class="nav nav-tabs">
+          <li class="active"><a href="#all_except" data-toggle="tab">Отправить всем кроме</a></li>
+          <li class=""><a href="#send_only" data-toggle="tab">Отправить только выбранным</a></li>
+        </ul>
+    <p></p>
+    
+    <p><span id="load_user"></span></p>
+    <div id="myTabContent" class="tab-content">
+    	<div class="tab-pane fade active in" id="all_except">
+            <select multiple="" name="e9" id="e9" style="width:500px" class="populate select2-offscreen" tabindex="-1"></select>
+    	</div>
+        
+    	<div class="tab-pane fade" id="send_only">
+        	<select multiple="" name="e10" id="e10" style="width:500px" class="populate select2-offscreen" tabindex="-1"></select>
+    	</div>
+    </div>
+</script>
+<!-- Выбираем кому отправить уведомление -->
+
 <!-- Автоматическая отправка уведомлений -->
 <script type="text/html" id="tmplAutoSendMessage">
 <p>
@@ -301,15 +322,14 @@
                 <div style="margin-left: 7px;">
                     <br/>
                     <center><span id="sender_status_" style="text-align:center;"></span></center>
+                    
                     <table width="98%" border="0">
                         <tr>
                             <td>
                                 Сообщение:
                             </td>
                             <td>
-                                <div id="working" style="display: none;color:green;">Отправка работает!</div>
-                                <p><button id="sender_uids_select" name="sender_uids_select" type="button" class="btn btn-success" onclick="javascript:;">Выбрать кому отправить (скоро)</button></p>
-                                <p>В данный момент <b>Уведомление</b> отправляется всем!</p>
+                                <p><button id="sender_uids_select" name="sender_uids_select" type="button" class="btn btn-success" onclick="javascript:;">Выбрать кому отправить</button></p>
                                 <textarea name="message_sender" id="message_sender" cols="60" rows="5" wrap="virtual" maxlength="253" style="resize: none;"></textarea>
                             </td>
                         </tr>
@@ -371,6 +391,8 @@
         <table border=0 width="100%" style="color:black;">
             <tr>
                 <td align="left">
+                    <a href="//github.com/KyKyIIIKuH/Send-Notification-VK-APP" target="_blank"><img src="//assets-cdn.github.com/favicon.ico" /></a>
+                    
                     <a target="_blank" href='//host-tracker.com/ru/website-monitoring-statistics/9952629/lvuc/'><img
                     width='80' height='15' border='0' alt='службы мониторинга серверов' rel='nofollow'
                     src="//ext.host-tracker.com/uptime-img/?s=15&amp;t=9952629&amp;m=00.09&amp;p=Total&amp;src=lvuc" /></a>
