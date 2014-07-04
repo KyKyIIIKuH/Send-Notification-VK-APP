@@ -239,7 +239,7 @@ function sender_send() {
     var uid = info_user['viewer_id'];
     
     var category_;
-    var userids;
+    var userids = "";
     
     console.log(selected_user_send[0]);
     console.log(selected_user_send[1]);
@@ -257,7 +257,7 @@ function sender_send() {
         userids = selected_user_send[1];
     }
     
-    if(!userids)
+    if(selected_user_send[0] && selected_user_send[1])
     {
         document.getElementById("sender_message").removeAttribute("disabled", "disabled");
         document.getElementById("message_sender").removeAttribute("disabled", "disabled");
