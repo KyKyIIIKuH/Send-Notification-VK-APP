@@ -3,9 +3,9 @@
 function connectDB()
 {
     $hostname = "localhost";
-    $username = "username";
-    $password = "password";
-    $dbName = "db";
+    $username = "";
+    $password = "";
+    $dbName = "";
 
     $mysqli = new mysqli($hostname, $username, $password, $dbName);
     $mysqli->query('SET NAMES "utf8"');
@@ -136,7 +136,7 @@ function data_app($id_app)
 {
     $data[] = array();
     $mysqli = connectDB();
-    $query = "SELECT `title_app`, `list_app`, `list_secret_key`, `uid` FROM `vk_app_sender_visits`;";
+    $query = "SELECT `title_app`, `list_app`, `list_secret_key`, `uid`, `name` FROM `vk_app_sender_visits`;";
     if (mysqli_multi_query($mysqli, $query)) {
         do {
             /* получаем первый результирующий набор */
@@ -146,6 +146,7 @@ function data_app($id_app)
                     $list_app_ = $row[1];
                     $list_secret_key_app_ = $row[2];
                     $uid_user_app_ = $row[3];
+                    $name_user_app_ = $row[4];
 
                     if (isset($list_app_) && isset($list_app_) && isset($list_secret_key_app_)) {
                         $count = explode("\r\n", $list_app_);
@@ -158,6 +159,7 @@ function data_app($id_app)
                         for ($i = 0; $i < $count; $i++) {
                             if ("$id_app" == "$list_app_array[$i]") {
                                 $data["uid_add"] = $uid_user_app_;
+                                $data["name_add"] = $name_user_app_;
                                 $data["title_app"] = $title_app_array[$i];
                                 $data["id_app"] = $list_app_array[$i];
                                 $data["list_secret_key_app"] = $list_secret_key_app_array[$i];
@@ -621,7 +623,7 @@ function add_cron($datetime, $dirname)
     $connection = ssh2_connect('localhost', 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, 'usename', 'password');
+    ssh2_auth_password($connection, 'username', 'password');
     $stream = ssh2_exec($connection,
         'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;python add_cron.py -d "' .
         $datetime . '" -dir "' . $dirname . '"');
@@ -633,7 +635,7 @@ function export($id_app, $uid, $hash_)
     $connection = ssh2_connect('localhost', 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, 'usename', 'password');
+    ssh2_auth_password($connection, 'username', 'password');
     $stream = ssh2_exec($connection,
         'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;nohup python export.py -d "' .
         $id_app . '" -hash "' . $hash_ . '" &');
@@ -646,7 +648,7 @@ function testi($id_app)
     $connection = ssh2_connect('localhost', 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, 'usename', 'password');
+    ssh2_auth_password($connection, 'username', 'password');
     $stream = ssh2_exec($connection,
         'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;nohup python countdayvisits.py -d "' .
         $id_app . '"');
@@ -662,7 +664,7 @@ function check_secure_key($app_id, $secure_key)
     $data = false;
     $name_ = "";
     $VK = new vkapi("{$app_id}", "{$secure_key}");
-    $resp = $VK->api('users.get', array('user_ids' => 26887374, 'fields' =>
+    $resp = $VK->api('users.get', array('user_ids' => 1, 'fields' =>
             'first_name, last_name'));
     $xml = simplexml_load_string($resp);
     foreach ($xml->user as $movie) {
@@ -721,7 +723,7 @@ function valid_hash($uid, $name_, $social = "vk")
     if ($hash_db) {
         if($social == "vk")
         {
-            $VK = new vkapi("app id vk", "secret_key");
+            $VK = new vkapi("4181067", "secret key app");
             $resp = $VK->api('users.get', array('user_ids' => $uid, 'fields' =>
                     'first_name, last_name'));
             $xml = simplexml_load_string($resp);
@@ -875,6 +877,33 @@ function selected_send_user($id_app, $count_page, $first) {
     }
     
     return $data;
+}
+
+function user_app_added($uid) {
+    $mysqli = connectDB();
+    $row_active = $mysqli->query("SELECT `list_app` FROM `vk_app_sender_visits` WHERE `uid`='" .$uid . "';");
+    $row1_active = $row_active->fetch_assoc();
+    $list_app_ = $row1_active["list_app"];
+    closeDB($mysqli);
+    
+    $count = 0;
+    if(isset($list_app_) && $list_app_ != NULL)
+    {
+        $count = explode("\r\n", $list_app_);
+        $count = count($count);
+    }
+    
+    return $count;
+}
+
+function user_app($id_app) {
+    $mysqli = connectDB();
+    $row_active = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE `id_app`='".$id_app."';");
+    $row1_active = $row_active->fetch_assoc();
+    $count = $row1_active["count"];
+    closeDB($mysqli);
+    
+    return $count;
 }
 
 function userids_str_replace($userids, $userids_selected) {

@@ -1,3 +1,21 @@
 @import "//ploader.ru/vkapp/sender/js/select2/select2.css" screen;
 
 @import "//ploader.ru/vkapp/sender/css/style.css" screen;
+
+/* CSS for Ajax Loader */
+#loader {
+	width: 100%; 
+	height: 100%; 
+	position: fixed; 
+	text-align: center; 
+	z-index: 1000; 
+	background-color: #fff;
+	opacity: 5.80;
+}
+
+#loader img{
+	position: absolute; 
+	left: 20%; 
+	top: 20%; 
+	margin: -40px 0 0 -40px;
+}

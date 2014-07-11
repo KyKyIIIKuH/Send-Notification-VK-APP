@@ -74,7 +74,7 @@ if (isset($_POST["action"])) {
                 return;
             
             if ($social == "vk") {
-                $VK = new vkapi("app id", "secret key");
+                $VK = new vkapi("4181067", "secret key app");
                 $resp = $VK->api('users.get', array('user_ids' => $uid, 'fields' =>
                         'first_name, last_name'));
                 $xml = simplexml_load_string($resp);
@@ -97,10 +97,10 @@ if (isset($_POST["action"])) {
                     if (!$hash_)
                         $hash_edit = ", `hash` = VALUES(`hash`)";
                     
-                    $mysqli->query("INSERT INTO `vk_app_sender_visits` (`hash`, `name`, `uid`, `date`, `ip`, `visits`, `social`) VALUES ('" .
+                    $mysqli->query("INSERT INTO `vk_app_sender_visits` (`hash`, `name`, `uid`, `date`, `country`, `ip`, `visits`, `social`) VALUES ('" .
                         $hash_register . "', '" . $name_ . "', '" . $uid . "', '" . date("Y-m-d H:i:s") .
-                        "', '" . $_SERVER["REMOTE_ADDR"] . "', '" . $visits_ .
-                        "', '".$social."') ON DUPLICATE KEY UPDATE `date` = VALUES(`date`), `ip` = VALUES(`ip`), `visits` = (`visits`+1){$hash_edit};");
+                        "', '".geoip_country_code3_by_name($_SERVER['REMOTE_ADDR'])."', '" . $_SERVER["REMOTE_ADDR"] . "', '" . $visits_ .
+                        "', '".$social."') ON DUPLICATE KEY UPDATE `date` = VALUES(`date`), `country` = VALUES(`country`), `ip` = VALUES(`ip`), `visits` = (`visits`+1){$hash_edit};");
                 }
 
                 $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE `id_vk`='" .
@@ -135,17 +135,17 @@ if (isset($_POST["action"])) {
                 
                 iframe_url($_SERVER["HTTP_REFERER"], $id_app);
 
-                $mysqli->query("INSERT INTO `vk_app_all_visits` (`hash`, `id_app`, `name`, `id_vk`, `date`, `visits`, `social`) VALUES (" .
+                $mysqli->query("INSERT INTO `vk_app_all_visits` (`hash`, `id_app`, `name`, `id_vk`, `date`, `visits`, `country`, `social`) VALUES (" .
                     $hash_ . ", '" . $id_app . "', '" . $name_ . "', '" . $uid . "', '" . date("Y-m-d H:i:s") .
-                    "', '" . $visits_ . "', '" . $social . "') ON DUPLICATE KEY UPDATE `date` = VALUES(`date`), `visits` = (`visits`+1);");
+                    "', '" . $visits_ . "', '".geoip_country_code3_by_name($_SERVER['REMOTE_ADDR'])."', '" . $social . "') ON DUPLICATE KEY UPDATE `date` = VALUES(`date`), `visits` = (`visits`+1), `country` = VALUES(`country`);");
                 if ($visits_ == 0) {
                     $mysqli->query("UPDATE `vk_app_all_visits` SET `first_visit`='" . date("Y-m-d H:i:s") .
                         "' WHERE `hash`=" . $hash_ . ";");
                 }
 
-                $mysqli->query("INSERT INTO `vk_app_all_visits_logs` (`hash`, `id_app`, `name`, `id_vk`, `date`, `social`) VALUES ('" .
+                $mysqli->query("INSERT INTO `vk_app_all_visits_logs` (`hash`, `id_app`, `name`, `id_vk`, `date`, `country` , `social`) VALUES ('" .
                     md5(time() . "SENDER") . "', '" . $id_app . "', '" . $name_ . "', '" . $uid .
-                    "', '" . date("Y-m-d H:i:s") . "', '" . $social . "');");
+                    "', '" . date("Y-m-d H:i:s") . "', '".geoip_country_code3_by_name($_SERVER['REMOTE_ADDR'])."', '" . $social . "');");
             }
             closeDB($mysqli);
         }
@@ -395,13 +395,14 @@ if (isset($_POST["action"])) {
         }
 
         $mysqli = connectDB();
-        $row_active = $mysqli->query("SELECT `title_app`, `list_app`, `list_secret_key` FROM `vk_app_sender_visits` WHERE `uid`='" .
+        $row_active = $mysqli->query("SELECT `title_app`, `list_app`, `list_secret_key`, `bonus` FROM `vk_app_sender_visits` WHERE `uid`='" .
             $uid . "';");
         $row1_active = $row_active->fetch_assoc();
         $title_app_ = $row1_active["title_app"];
         $list_app_ = $row1_active["list_app"];
         $list_app_secret_key_ = $row1_active["list_secret_key"];
-
+        $bonus_ = $row1_active["bonus"];
+        
         $row_active = $mysqli->query("SELECT `datetime` FROM `vk_app_sender_logs` WHERE `app_id`='" .
             $id_app . "' ORDER BY `id` DESC;");
         $row1_active = $row_active->fetch_assoc();
@@ -452,14 +453,15 @@ if (isset($_POST["action"])) {
                 $response["app_title"] = $list_title_array[$i];
                 $response["app_id"] = $list_app_array[$i];
                 $response["app_secret_key"] = $list_app_secret_key_array[$i];
-
+                
                 $datetime = time();
                 $datetime_old = date("Y-m-d", $datetime);
                 $day_next = time() + (1 * 24 * 60 * 60);
                 $datetime_new = date("Y-m-d", $day_next);
             }
         }
-
+        
+        $response["coins"] = $bonus_;
         /*} else {
         $response["status"] = 0;
         $response["app_title"] = "У вас нет доступа";
@@ -1015,7 +1017,7 @@ if (isset($_POST["action"])) {
 
         $response["count"] = $count;
 
-        $mysqli->real_query("SELECT `name`, `id_vk`, `date`, `visits` FROM `vk_app_all_visits` WHERE `id_app`='" .
+        $mysqli->real_query("SELECT `name`, `id_vk`, `date`, `visits`, `country` FROM `vk_app_all_visits` WHERE `id_app`='" .
             $id_app . "' ORDER BY `date` DESC,`visits` DESC LIMIT " . $start . " , " . $number_page .
             ";");
         $result = $mysqli->use_result();
@@ -1029,6 +1031,10 @@ if (isset($_POST["action"])) {
             $post["info_user_logs"] =
                 '<img id="info_user_logs_" onclick="javascript:app.showDialog(\'Информация о посещениях пользователя\',app.getTemplate(\'InfoUserLogSelect\'),buttons_default);setTimeout(function() { info_user_logs(' .
                 $row["id_vk"] . ', 0); }, 700);;" style="cursor: pointer;" src="//ploader.ru/vkapp/sender/images/app_info.png" width="24" height="24" title="Информация о посещениях пользователя" />';
+            if(isset($row["country"]))
+                $post["country"] = "<img src=\"//".$_SERVER["SERVER_NAME"]."/vkapp/sender/images/flags/".$row["country"].".gif\" />";
+            else
+                $post["country"] = "";
             array_push($response["response"], $post);
         }
 
@@ -1151,9 +1157,6 @@ if (isset($_POST["action"])) {
 
     //Поиск пользователя
     if ($action == "search_user") {
-
-        if (!$_SERVER["HTTP_REFERER"])
-            return;
         
         $status_valid_user_app = valid_user_app($id_app, $uid);
         if ($status_valid_user_app["status"] == 0) {
@@ -1169,7 +1172,7 @@ if (isset($_POST["action"])) {
 
         if (isset($id_app) && isset($uid_search_)) {
             $mysqli = connectDB();
-            $query = "SELECT `date`, `visits` FROM `vk_app_all_visits` WHERE `id_app`='" . $id_app .
+            $query = "SELECT `date`, `visits`, `country` FROM `vk_app_all_visits` WHERE `id_app`='" . $id_app .
                 "' AND `id_vk`='" . $uid_search_ . "';";
             if (mysqli_multi_query($mysqli, $query)) {
                 do {
@@ -1178,11 +1181,17 @@ if (isset($_POST["action"])) {
                         while ($row = mysqli_fetch_row($result)) {
                             $date_ = $row[0];
                             $visits_ = $row[1];
+                            $country_ = $row[2];
 
                             $response["status"] = 1;
 
                             $response["date"] = $date_;
                             $response["visits"] = $visits_;
+                            
+                            if(isset($country_))
+                                $response["country"] = "<img src=\"//".$_SERVER["SERVER_NAME"]."/vkapp/sender/images/flags/".$country_.".gif\" />";
+                            else
+                                $response["country"] = "";
                         }
                         mysqli_free_result($result);
                     }

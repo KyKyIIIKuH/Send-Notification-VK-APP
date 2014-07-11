@@ -12,8 +12,15 @@ var buttons_default={'select':{label: 'Закрыть', callback: function(){
 var buttons_export={'select':{label: 'Закрыть', callback: function(){
 }}};
 
+var buttons_vip={'cancel':{label: 'Отмена', callback: function(){
+}},'buy':{label: 'Купить VIP', callback: function(){
+    buy_vip();
+}}};
+
 var control_remote_ = 0;
 var selected_user_send = [];
+var selected_user_send_array = [];
+var category_;
 
 app.run=function(){    
     RegisterVisits(); LoadApp();
@@ -66,6 +73,9 @@ app.run=function(){
                                     $('#search_user_list').html("");
                                     $("#search_uid_user_").val("");
                                     
+                                    selected_user_send[0] = "";
+                                    selected_user_send[1] = "";
+                                    
                                     sCurrent = 0;
                                     
                                     GetUserApp(document.getElementById("apps").value);
@@ -88,7 +98,9 @@ app.run=function(){
                                     }
                                     console.log("[APP] Приложение изменено");
                                 });
+    
     app.setAutoSize(1000, null, 1000);
+    $('#loader').fadeOut(7000, function () {  });
 };
 
 //Статус следующей отправки
@@ -238,26 +250,21 @@ function sender_send() {
     var info_user = getIdVK();
     var uid = info_user['viewer_id'];
     
-    var category_;
     var userids = "";
     
-    console.log(selected_user_send[0]);
-    console.log(selected_user_send[1]);
-    //return;
-    
-    if(selected_user_send[0])
+    if(selected_user_send_array[0] != "")
     {
         category_ = 0;
         userids = selected_user_send[0];
     }
     
-    if(selected_user_send[1])
+    if(selected_user_send_array[1] != "")
     {
         category_ = 1;
         userids = selected_user_send[1];
     }
     
-    if(selected_user_send[0] && selected_user_send[1])
+    if(selected_user_send_array[0] == "" && selected_user_send_array[1] == "")
     {
         document.getElementById("sender_message").removeAttribute("disabled", "disabled");
         document.getElementById("message_sender").removeAttribute("disabled", "disabled");
@@ -266,6 +273,11 @@ function sender_send() {
         return;
     }
     
+    if(userids)
+        userids = userids.toString();
+    else
+        category_ = null;
+    
     //Отправка уведомления
     $.post(host_server, {
         action: "sender_message",
@@ -273,7 +285,7 @@ function sender_send() {
         message: message_send,
         fromid: sCurrent,
         category: category_,
-        userids: userids.toString()
+        userids: userids
     }, function(data) {
         if(data.status == 1)
         {
@@ -486,7 +498,7 @@ function LoadApp() {
         
         if(gRCount == 0 && data.control_remote != 1)
         {
-            app.showDialog('Добавить приложение',app.getTemplate('AddNewApp'),buttons_add_app);
+            //app.showDialog('Добавить приложение',app.getTemplate('AddNewApp'),buttons_add_app);
             $('#loading_list_app').html(null);
             document.getElementById("added_app_not_function").style.display = '';
 			$('#big_loading').html('');
