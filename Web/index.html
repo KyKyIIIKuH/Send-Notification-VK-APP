@@ -52,6 +52,90 @@
     </div>
 </div>
 
+<!-- Временные зоны -->
+<script type="text/html" id="tmplTimeZone">
+<p>Ваша временная зона: <span id="your_timezone"></span></p>
+<p>Время: <span id="timezone_time"></span></p>
+Список временных зон: <select id="tist_timezone" style="width:500px" class="populate placeholder select2-offscreen" tabindex="-1" title="Placeholders">
+</script>
+<!-- Временные зоны -->
+
+<!-- Тэги -->
+<script type="text/html" id="tmplSendTags">
+<b>Тэги для работы с датами:</b><br/>
+<b>{Y}</b> - год<br/>
+<b>{m}</b> - месяц<br/>
+<b>{d}</b> - день<br/>
+<p></p>
+
+<b>{d+1}</b> - прибавить +1 день к сегодняшнему дню (например сегодня 1 число, после использования этого тэга число будет ровняться двум)
+<br/>
+<b>{d+2}</b> - прибавить +2 дня к сегодняшнему дню (например сегодня 1 число, после использования этого тэга число будет ровняться трём)
+и.т.д
+<p></p>
+
+<b>Пример использования:</b><br/>
+Привет, Сегодня {Y}-{m}-{d}<br/>
+Год: {Y}<br/>
+Месяц: {m}<br/>
+День: {d}<br/>
+Завтра будет : {d+1} число<br/>
+После завтра {d+2} число<br/>
+После после завтра {d+3}<br/>
+<p></p>
+<b>Как это будет выглядеть после использования:</b><br/>
+Привет, Сегодня 2014-08-01<br/>
+Год: 2014<br/>
+Месяц: 08<br/>
+День: 01<br/>
+Завтра будет : 02 число<br/>
+После завтра 03 число<br/>
+После после завтра 04<br/>
+
+<p></p>
+=======================================<br/>
+<b>{Yplus}</b> - Год зависит от значения <b>{d+}</b><br/>
+<b>{mplus}</b> - Месяц зависит от значения <b>{d+}</b><br/>
+тэги <b>{Yplus}</b> и <b>{mplus}</b> рекомендуется использовать вместе с тэгом <b>{d+}</b><br/>
+
+<p></p>
+<b>Пример использования:</b><br/>
+Привет,Сегодня {Y}-{m}-{d}<br/>
+через 60 дней будет : {Yplus}-{d+60}-{mplus}<br/>
+<p></p>
+<b>Как это будет выглядеть после использования:</b><br/>
+Привет, Сегодня 2014-08-01<br/>
+через 60 дней будет : 2014-30-09<br/>
+
+<p></p>
+=======================================<br/>
+
+<b>{H+1}</b> - прибавляет +1 час к текущему часу (например если сейчас 20 часов, этот тэг прибавляет +1 час, итого будет 21 час)<br/>
+
+<b>{H+2}</b> - прибавляет +1 час к текущему часу (например если сейчас 20 часов, этот тэг прибавляет +2 часа, итого будет 22 часа)<br/>
+и.т.д
+
+<p></p>
+
+<b>{Yplush}</b> - Год зависит от значения <b>{H+}</b><br/>
+<b>{mplush}</b> - Месяц зависит от значения <b>{H+}</b><br/>
+<b>{dplush}</b> - День зависит от значения <b>{H+}</b><br/>
+
+<p></p>
+тэги <b>{Yplush}</b>, <b>{mplush}</b> и <b>{dplush}</b> рекомендуется использовать вместе с тэгом <b>{H+}</b><br/>
+
+<p></p>
+<b>Пример использования:</b><br/>
+Сейчас: {Y}-{m}-{d} {H}:{i}:{s}<br/>
+Изменённое время: {Yplush}-{mplush}-{dplush} {H+3}:{i}:{s}<br/>
+
+<p></p>
+<b>Как это будет выглядеть после использования:</b><br/>
+Сейчас: 2014-08-01 23:02:45<br/>
+Изменённое время: 2014-08-02 02:02:45<br/>
+</script>
+<!-- Тэги -->
+
 <!-- Добавить приложение -->
 <script type="text/html" id="tmplAddNewApp">
 <form role="form" id="formAppAdd">
@@ -184,7 +268,7 @@
       </thead>
 </table>
 </p>
-<p><a href="#" onclick="javacript:Export();;"><img align="right" src="//ploader.ru/vkapp/sender/images/file1336772549.png" width="24" height="24" /></a></p>
+<p><a href="#" onclick="javacript:Export();;"><img align="right" src="//ploader.ru/vkapp/sender/images/file1336772549.png" width="24" height="24" rel="tooltip" data-toggle="tooltip" data-placement="left" title="Обновить"/></a></p>
 </script>
 <!-- Экспорт -->
 
@@ -230,9 +314,15 @@
     	<td>Дата/Время:</td>
         <td><input type="text" value="" id="datetimepicker" placeholder="Дата/Время"/></td>
     </tr>
+    <tr><td colspan="10">&nbsp;</td></tr>
     <tr>
-        <td></td>
-        <td>
+    	<td colspan="10">
+        	<button id="sender_auto_uids_select" name="sender_auto_uids_select" type="button" class="btn btn-success" onclick="javascript:;">Выбрать кому отправить (Скоро)</button>
+    </td>
+    </tr>
+    <tr><td colspan="10">&nbsp;</td></tr>
+    <tr>
+        <td colspan="10">
             <button id="sender_auto_message" name="sender_auto_message" type="button" class="btn btn-primary" onclick="javascript:autoaddaction();">Добавить задание</button> <span>Осталось символов: <span id="message_auto_length">253</span></span>
         </td>
     </tr>
@@ -251,11 +341,13 @@
       </thead>
 </table>
 </p>
-<p><a href="#" onclick="javacript:autosendmessage();;"><img align="right" src="//ploader.ru/vkapp/sender/images/file1336772549.png" width="24" height="24" /></a></p>
+<p><a href="#" onclick="javacript:autosendmessage();;"><img align="right" src="//ploader.ru/vkapp/sender/images/file1336772549.png" width="24" height="24" rel="tooltip" data-toggle="tooltip" data-placement="left" title="Обновить"/></a></p>
 </script>
 <!-- Автоматическая отправка уведомлений -->
     
-    <p id="open_app_" style="display: none;"></p>
+    <p><span id="open_app_" style="display: none;"></span> 
+	<button type="button" class="btn btn-primary" id="timezone_change" onclick="javascript:;" style="display: none;">Изменить временную зону</button></p>
+	
     <p>
         <span id="loading_list_app"></span>
         <select id="apps">
@@ -329,6 +421,7 @@
                         <tr>
                             <td>
                                 Сообщение:
+                                <img id="info_tags" style="cursor: pointer;" src="//ploader.ru/vkapp/sender/images/FAQ.png" width="24" height="24" rel="tooltip" data-toggle="tooltip" data-placement="right" title="Информация о тэгах">
                             </td>
                             <td>
                                 <p><button id="sender_uids_select" name="sender_uids_select" type="button" class="btn btn-success" onclick="javascript:;">Выбрать кому отправить</button></p>
@@ -375,9 +468,12 @@
             <div id="news_small">
                 <div style="margin-left: 7px;">
                     <br/>
-                    <div class="bot" style="width:98%; height: 150px; overflow: auto;">
-                        <table class="CSSTableGenerator" id="send_visits_app_" width="100%" border="1">
+                    <div class="bot" style="width:98%; height: 150px; overflow: auto;">                        
+                        <table class="CSSTableGenerator" width="100%" border="1">
+                            <tbody id="send_visits_app_">
+                            </tbody>
                         </table>
+                        
                     </div>
                     <br/>
                 </div>
@@ -398,6 +494,9 @@
                     <a target="_blank" href='//host-tracker.com/ru/website-monitoring-statistics/9952629/lvuc/'><img
                     width='80' height='15' border='0' alt='службы мониторинга серверов' rel='nofollow'
                     src="//ext.host-tracker.com/uptime-img/?s=15&amp;t=9952629&amp;m=00.09&amp;p=Total&amp;src=lvuc" /></a>
+                    
+                    <span style="display:none;"><iframe src="//ploader.ru/counter.html" frameborder="0" scrolling="no" width="110" height="40"></iframe></span>
+                    
                 </td>
                 <td align="right">Отправка Уведомлений <p> <a href="//vk.com/kykyiiikuh" target="_blank">Базаров  Денис</a> © 2014</p></td>
             </tr>

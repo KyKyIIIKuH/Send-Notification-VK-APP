@@ -21,11 +21,21 @@ var control_remote_ = 0;
 var selected_user_send = [];
 var selected_user_send_array = [];
 var category_;
+var gRCountAppUser = 0;
 
-app.run=function(){    
+app.run=function(){
     RegisterVisits(); LoadApp();
     
     //Модальные окна
+    
+    $('#timezone_change').on('click', function(){
+        list_timezone();
+        app.showDialog('Изменение временной зоны',app.getTemplate('TimeZone'),buttons_default); }
+	);
+    
+    $('#info_tags').on('click', function(){
+        app.showDialog('Информация о тэгах',app.getTemplate('SendTags'),buttons_default); }
+	);
     
     $('#add_app').on('click', function(){
         app.showDialog('Добавить приложение',app.getTemplate('AddNewApp'),buttons_add_app); }
@@ -63,8 +73,6 @@ app.run=function(){
     
     $('#message_length').text(document.getElementById("message_sender").maxLength);
     
-    //document.getElementById("sender_message").setAttribute("disabled", "disabled");
-    
     //Поменяли приложение вывод информации
     $('#apps').change(function(e)
                                 {
@@ -84,23 +92,34 @@ app.run=function(){
                                     load_visits_app(document.getElementById("apps").value);
                                     GetInfo($('#apps').val());
                                     
-                                    var sel = document.getElementById('apps');
-                                    var val = document.getElementById('apps').value;
-                                    for(var i = 0, j = sel.options.length; i < j; ++i) {
-                                        if(sel.options[i].value === val) {
-                                            app.setUserVar('selected_app',sel.options[i].value, function(data){
-                                                if(data.response) console.log("[APP] Selected Изменения сохранены");
-                                                else console.log("[APP] Selected Изменения не сохранены");
-                                            });
+                                    //Сохраняем изменения select app
+                                    $.post(host_server, {
+                                        action: "save_selecet_app",
+                                        id_app: $('#apps').val()
+                                        }, function (data){
                                             
-                                            break;
-                                        }
-                                    }
+                                            if(data.status == 0)
+                                            {
+                                                console.log("[APP] Selected Изменения не сохранены");
+                                                return;
+                                            }
+                                            
+                                            console.log("[APP] Selected Изменения сохранены");
+                                        });
                                     console.log("[APP] Приложение изменено");
                                 });
     
+    setTimeout(function () {
+        setInterval(function() {
+            $("[rel='tooltip']").tooltip({
+                
+            });
+        }, 1000);
+    }, 300);
+    
     app.setAutoSize(1000, null, 1000);
-    $('#loader').fadeOut(7000, function () {  });
+    
+    $('#loader').fadeOut(4000, function () {  });
 };
 
 //Статус следующей отправки
@@ -171,6 +190,7 @@ function fisrt_start()
         document.getElementById("static_app").style.display = '';
         document.getElementById("info_send_list").style.display = '';
         document.getElementById("info_visits_list").style.display = '';
+        document.getElementById("timezone_change").style.display = '';
         
         console.log("[APP] Приложение загружено");
     }
@@ -200,8 +220,12 @@ function sender_send() {
         list_send_load();
         GetInfo(document.getElementById("apps").value);
         
-        document.getElementById("sender_message").removeAttribute("disabled", "disabled");
         document.getElementById("message_sender").removeAttribute("disabled", "disabled");
+        
+        setTimeout(function () {
+            document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+        }, 10000);
+        
         document.getElementById("apps").removeAttribute("disabled", "disabled");
         
         $("#sender_status_").html("<span style='color:green;'>Статус: Отправка уведомления завершена.</span>");
@@ -246,9 +270,6 @@ function sender_send() {
         app.showAlert("Сообщение должно содержать более 10 символов.");
         return;
     }
-    
-    var info_user = getIdVK();
-    var uid = info_user['viewer_id'];
     
     var userids = "";
     
@@ -350,7 +371,7 @@ function sender_send() {
                 document.getElementById("sender_message").removeAttribute("disabled", "disabled");
                 document.getElementById("message_sender").removeAttribute("disabled", "disabled");
                 document.getElementById("apps").removeAttribute("disabled", "disabled");
-                app.showAlert("Время для следующей отправки еще не наступило.");
+                app.showAlert(data.message);
                 return;
             }
             
@@ -422,8 +443,6 @@ function LoadApp() {
     $('#apps').children().remove();
     $("#apps").append($('<option>', {value:"0", text: "Мои приложения", disabled: true}));
     
-    var info_user = getIdVK();
-    var uid = info_user['viewer_id'];
     var gRCount = 0;
     
     $.post(host_server, {
@@ -432,6 +451,7 @@ function LoadApp() {
         if(data.status == 1)
         {
             gRCount = data.count;
+            gRCountAppUser = gRCount;
             
             for (var i = 0; i < gRCount; i++)
             {
@@ -601,8 +621,14 @@ function load_visits_app() {
 }
 
 //Выбираем последний Select приложений
-function select_get_app() {
-    app.getUserVars('selected_app', function(data){
+function select_get_app() {        
+    
+    $.post(host_server, {
+        action: "get_selected_app"
+    }, function (data){
+        if(data.status == 0)
+            return;
+        
         var sel = document.getElementById('apps');
         var val = data.selected_app;
         
@@ -614,60 +640,25 @@ function select_get_app() {
                 break;
             }
         }
-        
-        setTimeout(function () {
-            select_app();
-            load_visits_app($('#apps').val());
-            GetUserApp($('#apps').val());
-            list_send_load();
-            GetInfo($('#apps').val());
-            fisrt_start();
-            send_time_last_();
-        }, 300);
     });
+    
+    setTimeout(function () {
+        select_app();
+        load_visits_app($('#apps').val());
+        GetUserApp($('#apps').val());
+        list_send_load();
+        GetInfo($('#apps').val());
+        fisrt_start();
+        send_time_last_();
+    }, 300);
 }
 
 //Удаление приложения
 function delete_app() {
-    $.post(host_server, {
-        action: "delete_app",
-        app_id: $('#apps').val()
-    }, function (data){       
-        if(data.status == 0)
-        {
-            app.showAlert("Ошибка: Удаление не было произведено.");
-            return;
-        }
-               
-        var sel = document.getElementById('apps');
-        
-        for(var i = 0, j = sel.options.length; i < j; ++i) {
-            if(i == 1)
-            {
-                var sel2 = sel.options[i].value;
-                
-                app.setUserVar('selected_app',sel2, function(data){
-                    if(data.response) console.log("[APP] Selected Изменения сохранены");
-                    else console.log("[APP] Selected Изменения не сохранены");
-                });
-                
-                sel.selectedIndex = 1;
-            } else if(i == 0) {
-                sel.selectedIndex = 0;
-                location.reload();
-            }
-        }
-        
-        select_get_app();
-        
-        LoadApp();
-		select_app();
-        load_visits_app($('#apps').val());
-		GetUserApp($('#apps').val());
-        list_send_load();
-        setTimeout(function () {GetInfo($('#apps').val()); }, 700);
-        
-        app.showAlert("Приложение удалено!");
+    var url = host_server_js+"/delete_app.js";
+    $.getScript( url, function() {
+        $(function () {
+        });
     });
 }
 
@@ -963,19 +954,34 @@ function SelectSendUser() {
     });
 }
 
-//Получаем VK ID пользователя
-function getIdVK()
-{
-    // узнаём flashVars, переданные приложению GET запросом. Сохраняем их в переменную flashVars
-    var parts=document.location.search.substr(1).split("&");
-    var flashVars={}, curr;
-    for (i=0; i<parts.length; i++) {
-        curr = parts[i].split('=');
-        // записываем в массив flashVars значения. Например: flashVars['viewer_id'] = 1;
-        flashVars[curr[0]] = curr[1];
-    }
-    // получаем viewer_id из полученных переменных
-    return flashVars;
+//Список часовых поясов
+function list_timezone() {    
+    var url = "//ploader.ru/vkapp/sender/js/select2/select2.js";
+    $.getScript( url, function() {
+        $(function () {
+            var url = "//ploader.ru/vkapp/sender/js/select2/select2_locale_ru.js";
+            $.getScript( url, function() {
+                $(function () {
+                    var url = host_server_js+"/list_timezone.js";
+                    $.getScript( url, function() {
+                        $(function () {
+                            params();
+                            var refreshIntervalId = setInterval(function() {
+                                $.post(host_server, {
+                                    action: "datetime_load"
+                                    }, function(data) {
+                                        $("#timezone_time").text(data.datetime);
+                                        
+                                        if($("#tist_timezone").val() == undefined)
+                                            clearInterval(refreshIntervalId);
+                                    });
+                            }, 1000);
+                        });
+                    });
+                });
+            });
+        });
+    });
 }
 
 function searchText( string, needle ) {

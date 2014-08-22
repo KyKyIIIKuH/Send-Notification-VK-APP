@@ -41,22 +41,43 @@ $(function()
         
         if(data.status == 1)
         {
-            GetInfo($('#id_app').val());
             console.log("[APP] Приложение добавлено!");
             app.showAlert("Приложение добавлено");
+            
+            GetInfo($('#apps').val());
             LoadApp();
-            GetUserApp($('#id_app').val());
+            GetUserApp($('#apps').val());
             select_app();
             
-            var sel = document.getElementById('apps');
-            
-            for(var i = 0, j = sel.options.length; i < j; ++i) {
-                if(i == 1) {
-                    break;
-                }
-            }
-            
             select_get_app();
+            
+            setTimeout(function () {
+                var sel = document.getElementById('apps');
+                for(var i = 0, j = sel.options.length; i < j; ++i) {
+                    if(i == gRCountAppUser) {
+                        sel.selectedIndex = i;
+                        break;
+                    }
+                }
+            }, 200);
+            
+            setTimeout(function () {
+                var sel = document.getElementById('apps');
+                
+                for(var i = 0, j = sel.options.length; i < j; ++i) {
+                    if(i == gRCountAppUser) {
+                        var sel2 = sel.options[i].value;
+                        
+                        console.log(sel2 + " <<<< " + gRCountAppUser);
+                        
+                        $.post(host_server, {
+                            action: "save_selecet_app",
+                            id_app: sel2
+                        }, function (data){
+                        });
+                    }
+                }
+            }, 400);
         }
         
         if(data.status == 0)

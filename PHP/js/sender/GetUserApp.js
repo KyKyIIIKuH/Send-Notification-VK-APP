@@ -1,10 +1,12 @@
 function params(start) {
+    
     document.getElementById("block_users").style.display = '';
     document.getElementById("search_user").style.display = '';
     
     var userarraydata;
     
     $('#user_list').html("<p><img src='//vk.com/images/upload.gif'/></p>");
+    
     $.post(host_server, {
         action: "get_app_user_list",
         id_app: document.getElementById("apps").value,
@@ -13,7 +15,7 @@ function params(start) {
         userarraydata = data;
         
         var gRCount = userarraydata.count;
-        var gRcountUser = userarraydata.count_user;
+        var gRUsersUID = userarraydata.userids;
         var gRCountUserDayVisit = userarraydata.day_visits;
         
         if(gRCount == 0)
@@ -23,17 +25,21 @@ function params(start) {
             return;
         }
         
-        var count_users_all = 0;
-        var user_list = "";
+        vkapi.users.get({user_ids: gRUsersUID, v:5.23}, 
+                        function(data_vk_users_get){
+                            if(data_vk_users_get.response) {
+                                var grCount_vk = data_vk_users_get.response;
+                                
+                                var user_list = "";
+                                
+                                for(i=0;i<=parseInt(grCount_vk.length - 1);i++) {
+                                    user_list += '<label for="'+ data_vk_users_get.response[i].id +'">'+ data_vk_users_get.response[i].last_name +' ' + data_vk_users_get.response[i].first_name + '</label><br/>';
+                                }
+                                
+                                $('#user_list').html(user_list);
+                            }
+                        });
         
-        for (var i = 0; i < gRcountUser; i++)
-        {
-            count_users_all++;
-            var username = userarraydata.response[i].name;
-            var id_vk = userarraydata.response[i].uid;
-            user_list += '<label for="'+id_vk+'">'+username+'</label><br/>';
-        }
-        $('#user_list').html(user_list);
         if(gRCountUserDayVisit != 0)
             gRCountUserDayVisit = "<span style='color:green;'>+"+gRCountUserDayVisit+"</span>";
         else

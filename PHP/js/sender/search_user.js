@@ -71,7 +71,8 @@ $(function()
             
             var content = "Имя: " + realnameuser + "<br/>";
             content += "Визитов: " + data.visits + "<br/>";
-            content += "Последнее посещение: " + data.date;
+            content += "Последнее посещение: " + data.date + "<br/>";;
+            content += "Страна: " + data.country;
             
             $('#search_user_list').html("<p>"+content+"</p>");
             

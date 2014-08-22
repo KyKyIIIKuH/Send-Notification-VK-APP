@@ -26,11 +26,11 @@ $(function()
                 app.showAlert(data.message);
                 return;
             }
-            
             app.showAlert("Задание не добавлено!");
             return;
         }
         
+        //console.log(data.text);
         autosendmessage();
         app.showAlert("Задание добавлено!");
     });

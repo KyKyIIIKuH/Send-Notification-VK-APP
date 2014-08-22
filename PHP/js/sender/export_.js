@@ -1,12 +1,19 @@
 $(function()
 {
+    $("#export_list").html('<table class="table table-hover" id="export_list"><thead><tr><th>#</th><th>Дата/Время</th><th>Выполнено</th><th>Статус</th><th></th></tr></thead>');
+    $("#export_list").append('<tr></tr>');
+    for(j=1;j<=1;j++) {
+        $("#export_list > tbody > tr:last").append('<td colspan="5"><p><img src="//vk.com/images/upload.gif"/></p></td>');
+    }
+    $("#export_list").html($("#export_list").html() + "</table>");
+    
     $.post(host_server, {
         action: "export_list",
         app_id: $('#apps').val()
     }, function (data){
         var grCount = data.count;
         
-        $("#export_list").html('<table class="table table-hover" id="autosend_list_active"><thead><tr><th>#</th><th>Дата/Время</th><th>Выполнено</th><th>Статус</th><th></th></tr></thead>');
+        $("#export_list").html('<table class="table table-hover" id="export_list"><thead><tr><th>#</th><th>Дата/Время</th><th>Выполнено</th><th>Статус</th><th></th></tr></thead>');
         
         if(grCount == 0)
         {
@@ -14,6 +21,8 @@ $(function()
             for(j=1;j<=1;j++) {
                 $("#export_list > tbody > tr:last").append('<td colspan="5" align="center">У вас нет заданий для экспорта!</td>');
             }
+            $("#export_list").html($("#export_list").html() + "</table>");
+            return;
         }
         
         var i_new = 0;

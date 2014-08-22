@@ -1,5 +1,8 @@
 <?
 
+define ("IDAPP", ""); 
+define ("SECRETKEY", ""); 
+
 function connectDB()
 {
     $hostname = "localhost";
@@ -34,6 +37,28 @@ function time_($time_input)
     $sec = $sub - $days * 24 * 60 * 60 - $hours * 60 * 60 - $min * 60;
 
     return $hours . ":" . $min . ":" . $sec;
+}
+
+function time_2($time_input)
+{
+    date_default_timezone_set("Europe/Moscow");
+    
+    $met = $time_input;
+    $metTS = strtotime($met);
+
+    $sub = $metTS - time();
+    $sub = abs($sub);
+    $days = (int)($sub / (24 * 60 * 60));
+    $hours = (int)(($sub - $days * 24 * 60 * 60) / (60 * 60));
+    $min = (int)(($sub - $days * 24 * 60 * 60 - $hours * 60 * 60) / 60);
+    $sec = $sub - $days * 24 * 60 * 60 - $hours * 60 * 60 - $min * 60;
+    
+    $data["days"] = $days;
+    $data["hours"] = $hours;
+    $data["min"] = $min;
+    $data["sec"] = $sec;
+    
+    return $data;
 }
 
 function time_explode_sender($datetime, $hour_plus = 0, $next_day = false)
@@ -79,6 +104,7 @@ function convertUrlQuery($query, $search = '&')
 
 function valid_app($app_id, $social = "vk")
 {
+    $status = 1;
     $valid_app_admin_bool = false;
     $valid_app_not_download_bool = false;
     
@@ -92,14 +118,24 @@ function valid_app($app_id, $social = "vk")
         $valid_app_admin_bool = (strpos($json, " was disabled by site administrators."));
         $valid_app_not_download_bool = (strpos($json,
             " has not been uploaded by the user."));
-    } else if($social == "ok")
-    {
+            
+        if ($valid_app_admin_bool == true || $valid_app_not_download_bool == true) {
+            $status = 0;
+        }
     }
     
-    if ($valid_app_admin_bool == true || $valid_app_not_download_bool == true) {
-        return 0; //0
+    if($social == "ok")
+    {
+        $json = ok_parse_data($app_id, "iframe");
+        
+        $valid_app_bool = $json["valid"];
+        
+        if ($valid_app_bool == true) {
+            $status = 1;
+        }
     }
-    return 1; //1
+    
+    return $status;
 }
 
 function delete_app($text_delete, $count, $array)
@@ -294,8 +330,7 @@ function add_remote_control($id_app, $uid_added, $uid_remote)
 {
     $data = false;
     $mysqli = connectDB();
-    $query = "SELECT `remote_control` FROM `vk_app_sender_visits` WHERE `uid`='" . $uid_added .
-        "';";
+    $query = "SELECT `remote_control` FROM `vk_app_sender_visits` WHERE `uid`='" . $uid_added . "';";
     if (mysqli_multi_query($mysqli, $query)) {
         do {
             /* получаем первый результирующий набор */
@@ -492,7 +527,7 @@ function update_remote_control($id_app_old, $id_app_new)
     return $data;
 }
 
-function iframe_url($url, $api_id)
+function iframe_url($url, $api_id, $social = 'vk')
 {
     $result_data = false;
     
@@ -659,20 +694,27 @@ function testi($id_app)
     return $result;
 }
 
-function check_secure_key($app_id, $secure_key)
+function check_secure_key($app_id, $secure_key, $social = 'vk')
 {
     $data = false;
     $name_ = "";
-    $VK = new vkapi("{$app_id}", "{$secure_key}");
-    $resp = $VK->api('users.get', array('user_ids' => 1, 'fields' =>
-            'first_name, last_name'));
-    $xml = simplexml_load_string($resp);
-    foreach ($xml->user as $movie) {
-        $name_ = $movie->last_name . " " . $movie->first_name;
+    if($social == "vk") {
+        $VK = new vkapi("{$app_id}", "{$secure_key}");
+        $resp = $VK->api('users.get', array('user_ids' => 26887374, 'fields' =>
+                'first_name, last_name'));
+        $xml = simplexml_load_string($resp);
+        foreach ($xml->user as $movie) {
+            $name_ = $movie->last_name . " " . $movie->first_name;
+        }
     }
-
-    if ($name_)
+    
+    if($social == "ok") {
+        $name_ = "42424";
+    }
+    
+    if ($name_) {
         $data = true;
+    }
 
     return $data;
 }
@@ -714,24 +756,13 @@ function valid_hash($uid, $name_, $social = "vk")
     $data = false;
 
     $mysqli = connectDB();
-    $row_active = $mysqli->query("SELECT `hash` FROM `vk_app_sender_visits` WHERE `uid`='" .
-        $uid . "';");
+    $row_active = $mysqli->query("SELECT `hash` FROM `vk_app_sender_visits` WHERE `uid`='" . $uid . "';");
     $row1_active = $row_active->fetch_assoc();
     $hash_db = $row1_active["hash"];
     closeDB($mysqli);
 
     if ($hash_db) {
-        if($social == "vk")
-        {
-            $VK = new vkapi("4181067", "secret key app");
-            $resp = $VK->api('users.get', array('user_ids' => $uid, 'fields' =>
-                    'first_name, last_name'));
-            $xml = simplexml_load_string($resp);
-            foreach ($xml->user as $movie) {
-                $name_ = $movie->last_name . " " . $movie->first_name;
-            }
-        }
-        $hash_register = md5($uid . $name_ . "SENDER");
+        $hash_register = md5($uid . "SENDER");
 
         if ($hash_register == $hash_db)
             $data = true;
@@ -864,16 +895,21 @@ function selected_send_user($id_app, $count_page, $first) {
         $row2 = $row1->fetch_assoc();
         if(isset($row2["count"])) $data["count"] = $row2["count"];
         
-        $mysqli->real_query("SELECT `name`, `id_vk` FROM `vk_app_all_visits` WHERE `id_app`='" . $id_app . "' ORDER BY `date` DESC LIMIT " . $first . " , 50;");
+        $mysqli->real_query("SELECT `id_vk` FROM `vk_app_all_visits` WHERE `id_app`='" . $id_app . "' ORDER BY `date` DESC LIMIT " . $first . " , 50;");
         $result = $mysqli->use_result();
         
-        $data["response"] = array();
+        $userids = "";
+        $symbol = "";
+        
         while ($row = $result->fetch_assoc()) {
-            $post["name"] = $row["name"];
-            $post["id_vk"] = $row["id_vk"];
-            array_push($data["response"], $post);
+            
+            if ($userids !== "") {
+                $symbol = ",";
+            }
+            $userids = $userids . $symbol . $row["id_vk"];
         }
         closeDB($mysqli);
+        $data["userids"] = $userids;
     }
     
     return $data;
@@ -935,5 +971,95 @@ function userids_str_replace($userids, $userids_selected) {
     }
     
     return $userids;
+}
+
+function load_second_page($time_start_load)  {   
+    $time_end_load = microtime(true);
+    $time_load = $time_end_load - $time_start_load;
+    $time_load = $time_load * 1000;
+    $res_load = strlen($time_load) -1;
+    $time_load = substr($time_load, 0, -$res_load);
+    
+    return $time_load;
+}
+
+function time_correction($datetime, $timezone1, $timezone2) {
+    
+    date_default_timezone_set($timezone1);
+    $new_datetime = strtotime($datetime);
+    date_default_timezone_set($timezone2);
+    
+    return date("Y-m-d H:i:s", $new_datetime);
+}
+
+function tags_sender($message_send) {
+    
+    preg_match_all('/{d\+?([0-9]+)}/', $message_send, $day_plus, PREG_PATTERN_ORDER);
+    
+    preg_match_all('/{H\+?([0-9]+)}/', $message_send, $hour_plus, PREG_PATTERN_ORDER);
+    
+    $count_tags = count($day_plus[1]);
+    
+    $count_tags2 = count($hour_plus[1]);
+    
+    $i3 = 0;
+    $i2 = -1;
+    
+    $day_output = date("d");
+    $day_output_double = $day_output;
+    $month_output = date("m");
+    $month_output_double = $month_output;
+    
+    $year_output = date("Y");
+    $year_output_double = $year_output;
+    $hour_output = date("H");
+    
+    for ($i = 0; $i < $count_tags; $i++) {
+        $i2++;
+        if($i3 != 1)
+            $i3++;
+        
+        if(isset($day_plus[$i3][$i2]))
+        {
+            $timestap = strtotime("+{$day_plus[$i3][$i2]} day");
+            
+            $day_output = date("d", $timestap);
+            $month_output = date("m", $timestap);
+        }
+        
+        $tags_array = array("{Y}", "{Yplus}", "{m}", "{mplus}", "{d}", "{dplus}", $day_plus[0][$i2], "{H}", "{i}", "{s}");
+        $replace_array = array(date("Y"), $year_output, date("m"), $month_output, date("d"), $day_output, $day_output, $hour_output, date("i"), date("s"));
+        $message_send = str_replace($tags_array, $replace_array, $message_send);
+    }
+    
+    $i3 = 0;
+    $i2 = -1;
+    
+    for ($i = 0; $i < $count_tags2; $i++) {
+        $i2++;
+        if($i3 != 1)
+            $i3++;
+                
+        if(isset($hour_plus[$i3][$i2]))
+        {
+            $timestap = strtotime("+{$hour_plus[$i3][$i2]} hours");
+            $day_output_double = date("d", $timestap);
+            $month_output_double = date("m", $timestap);
+            $year_output_double = date("Y", $timestap);
+            
+            $hour_output = date("H", $timestap);
+        }
+        
+        if(isset($hour_plus[0][$i2]) && $hour_plus[0][$i2] != NULL)
+            $hour_tags = $hour_plus[0][$i2];
+        else
+            $hour_tags = null;
+        
+        $tags_array = array("{Yplush}", $hour_tags, "{mplush}", "{dplush}");
+        $replace_array = array($year_output_double, $hour_output, $month_output_double, $day_output_double);
+        $message_send = str_replace($tags_array, $replace_array, $message_send);
+    }
+    
+    return $message_send;
 }
 ?>
