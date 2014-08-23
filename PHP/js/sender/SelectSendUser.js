@@ -89,6 +89,7 @@ $('#e10').on('change', function(){
 });
 
 function params() {
+    
     if(selected_user_send_array[0])
     {
         //E9
@@ -157,12 +158,13 @@ function params() {
                             var grCount_vk = data_vk_users_get.response;
                             
                             for(i=0;i<=parseInt(grCount_vk.length);i++) {
+                                
                                 if(data_vk_users_get.response[i]) {
                                     var name_ = data_vk_users_get.response[i].last_name +' ' + data_vk_users_get.response[i].first_name;
                                     var id_vk_ = data_vk_users_get.response[i].id;
                                     
-                                     $("#e9").append($('<option>', {value:id_vk_, text: name_}));
-                                     $("#e10").append($('<option>', {value:id_vk_, text: name_}));
+                                    $("#e9").append($('<option>', {value:id_vk_, text: name_}));
+                                    $("#e10").append($('<option>', {value:id_vk_, text: name_}));
                                 }
                                 else
                                 {

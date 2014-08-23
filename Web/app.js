@@ -45,7 +45,7 @@ app.run=function(){
         app.showDialog('Выбираем кому отправить',app.getTemplate('SelectSendUser'),buttons_default);
         SelectSendUser("send_all_except");
     });
-    
+       
     $('#settings_app_').on('click', function(){
         if(control_remote_ == 0)
         {
@@ -124,42 +124,12 @@ app.run=function(){
 
 //Статус следующей отправки
 function send_time_last_(last_sender_datetime_) {
-        var url = "//ploader.ru/vkapp/sender/js/countdown/jquery.plugin.js";
-        $.getScript( url, function() {
-            var url2 = "//ploader.ru/vkapp/sender/js/countdown/jquery.countdown.js";
-            $.getScript( url2, function() {
-                var url3 = "//ploader.ru/vkapp/sender/js/countdown/jquery.countdown-ru.js";
-                $.getScript( url3, function() {
-                    $(function () {
-                        if(last_sender_datetime_ != undefined)
-                        {
-                            $('#send_time_last').countdown('destroy'); 
-                            var date_ = last_sender_datetime_.split('-');
-                            var month = "0";
-                            month += date_[1] - 1 ;
-                            var space = date_[2].split(' ');
-                            var time = space[1].split(':');
-                            
-                            var austDay = new Date();
-                            austDay = new Date(date_[0],month,space[0],time[0], time[1], time[2]);
-                            
-                            $('#send_time_last').countdown({until: austDay, format: 'HMS', timezone: +4});
-                            
-                            setInterval(function() {
-                                var finish_ = $('#send_time_last').text().split(':');
-                                if(finish_[0] == "0" && finish_[1] == "0" && finish_[2] == "0") {
-                                    $('#send_time_last').countdown('destroy'); 
-                                    $('#send_time_last').html('<span class="label label-success"><b>Отправка разрешена!</b></span>');
-                                }
-                            }, 1000);
-                        } else {
-                            $('#send_time_last').countdown('destroy');
-                            $('#send_time_last').html("<p><img src='//vk.com/images/upload.gif'/></p>");
-                        }
-                    });
-            	});
-            });
+    var url = host_server_js+"/send_time_last_.js?";
+    $.getScript( url, function() {
+        $(function () {
+            params(last_sender_datetime_);
         });
+    });
 }
 
 //Проверяем сколько осталось символов
@@ -437,92 +407,10 @@ function AddNewApp()
 
 //Загружаем список добавленных приложений
 function LoadApp() {
-    $('#list_added_app').html(null);
-    
-    //Получаем информацию о добавленных приложениях
-    $('#apps').children().remove();
-    $("#apps").append($('<option>', {value:"0", text: "Мои приложения", disabled: true}));
-    
-    var gRCount = 0;
-    
-    $.post(host_server, {
-        action: "get_app_list"
-    }, function(data) {
-        if(data.status == 1)
-        {
-            gRCount = data.count;
-            gRCountAppUser = gRCount;
-            
-            for (var i = 0; i < gRCount; i++)
-            {
-                var title_app = data.response[i].title_app;
-                var id_app = data.response[i].list_app;
-                
-                var title_app2 = "";
-                
-                var size = 31;
-                if (title_app.length > size) {
-                    title_app2 += title_app.slice(0, 31);
-                    
-                }
-                if(title_app2)
-                {
-                    title_app = title_app2 + '...';
-                }
-                
-                $("#apps").append($('<option>', {value:id_app, text: title_app}));
-            }
-            
-            console.log("[APP] Список приложений загружен!");
-            $('#loading_list_app').html(null);
-            fisrt_start();
-            select_get_app();
-        } else {            
-            $("#apps").append($('<option>', {value:"0", text: "Нет добавленных приложений", disabled: true, selected: true}));
-            
-            console.log("[APP] У пользователя нет добавленных приложений!");
-            
-			reset_data('addnewapp');
-        }
-        
-        //Общий Доступ
-        if(data.control_remote == 1)
-        {            
-            $("#apps").append($('<option>', {value:"0", text: "Общий доступ", disabled: true}));
-            
-            var gRCountRemote = data.count_remote_app;
-            for (var i2 = 0; i2 < gRCountRemote; i2++)
-            {
-                var title_app_ = data.response_remote_control[i2].title_app;
-                var id_app_ = data.response_remote_control[i2].id_app;
-                
-                var title_app2 = "";
-                
-                var size_remote = 31;
-                if (title_app_.length > size_remote) {
-                    title_app2 += title_app_.slice(0, 31);
-                    
-                }
-                if(title_app2)
-                {
-                    title_app_ = title_app2 + '...';
-                }
-                
-                $("#apps").append($('<option>', {value:id_app_, text: title_app_}));
-            }
-            console.log("[APP] Список приложений загружен!");
-            $('#loading_list_app').html(null);
-            fisrt_start();
-            select_get_app();
-        }
-        
-        if(gRCount == 0 && data.control_remote != 1)
-        {
-            //app.showDialog('Добавить приложение',app.getTemplate('AddNewApp'),buttons_add_app);
-            $('#loading_list_app').html(null);
-            document.getElementById("added_app_not_function").style.display = '';
-			$('#big_loading').html('');
-        }
+    var url = host_server_js+"/LoadApp.js?";
+    $.getScript( url, function() {
+        $(function () {
+        });
     });
 }
 
@@ -539,56 +427,11 @@ function GetUserApp()
 
 //Сохранение данных
 function SetInfo() {
-   
-    if(!$('#app_title_').val() || !$('#app_id').val() || !$('#app_secret_key').val())
-    {
-        app.showAlert("Заполните все данные");
-        return;
-    }
-    
-    if(!$.isNumeric($('#app_id').val())){
-        app.showAlert("Вы ввели неправильный ID приложения");
-        return;
-    }
-    
-    if($('#app_id').val() && $('#app_secret_key').val())
-    {
-        $.post(host_server, {
-            action: "set_setting_app_data",
-            title_app: $('#app_title_').val(),
-            app_id: $('#AppId_settings').val(),
-            app_id_new: $('#app_id').val(),
-            key_app: $('#app_secret_key').val()
-        }, function(data) {
-            if(data.valid_app == 0)
-            {
-                app.showAlert("Приложение с таким ID не существует!");
-                return;
-            }
-            
-            if(data.valid_secure_key == 0)
-            {
-                app.showAlert(data.message);
-                return;
-            }
-            
-            if(data.status == "1")
-            {
-                if(data.error == 0)
-                {
-                    LoadApp();
-                    GetUserApp(document.getElementById("apps").value);
-                    select_app();
-                    app.showAlert("Данные Сохранены");
-                }
-                else
-                    app.showAlert("УПС ошибка сохранения");
-            }
-            else if(data.status == "0")
-                app.showAlert("УПС ошибка доступа");
+    var url = host_server_js+"/SetInfo.js";
+    $.getScript( url, function() {
+        $(function () {
         });
-    } else
-        app.showAlert("Введите Данные!");
+    });
 }
 
 //Получение данных о приложении
@@ -621,36 +464,12 @@ function load_visits_app() {
 }
 
 //Выбираем последний Select приложений
-function select_get_app() {        
-    
-    $.post(host_server, {
-        action: "get_selected_app"
-    }, function (data){
-        if(data.status == 0)
-            return;
-        
-        var sel = document.getElementById('apps');
-        var val = data.selected_app;
-        
-        for(var i = 0, j = sel.options.length; i < j; ++i) {
-            var sel2 = sel.options[i].value;
-            
-            if(searchText(sel2, val) === true) {
-                sel.selectedIndex = i;
-                break;
-            }
-        }
+function select_get_app() {
+    var url = host_server_js+"/select_get_app.js";
+    $.getScript( url, function() {
+        $(function () {
+        });
     });
-    
-    setTimeout(function () {
-        select_app();
-        load_visits_app($('#apps').val());
-        GetUserApp($('#apps').val());
-        list_send_load();
-        GetInfo($('#apps').val());
-        fisrt_start();
-        send_time_last_();
-    }, 300);
 }
 
 //Удаление приложения
@@ -664,75 +483,29 @@ function delete_app() {
 
 //Список пользователей получивших общий доступ к добавленному приложению.
 function Sharing() {
-    $.post(host_server, {
-        action: "users_list_sharing",
-        app_id: $('#apps').val()
-        }, function (data){
-            document.getElementById("uid_user_remote_control").removeAttribute("disabled", "disabled");
-            document.getElementById("add_remote_control").removeAttribute("disabled", "disabled");
-            
-            var grCount = data.count;
-            $("#sharing_user").html('<table width="100%" border=1><tr><td colspan="2" align="center">Список пользователей ' + '</td></tr>');
-            
-            if(grCount == 0)
-            {
-                $("#sharing_user").append('<tr></tr>');
-                for(j=1;j<=1;j++) {
-                    $("#sharing_user > tbody > tr:last").append('<td colspan="2">Вы еще никого не добавили в общий доступ!</td>');
-                }
-            }
-            
-            for (var i=0; i<grCount; i++) {
-                if(data.response[i])
-                {
-                    var id_app_ = data.response[i].id_app;
-                    var uid_added_ = data.response[i].uid_added;
-                    var uid_remote_ = data.response[i].uid_remote;
-                    var real_name_ = data.response[i].real_name;
-                    
-                    $("#sharing_user").append('<tr></tr>');
-                    for(j=1;j<=1;j++) {
-                        $("#sharing_user > tbody > tr:last").append('<td><label for="' + uid_remote_ + '">' + real_name_ + '</label></td>');
-                        $("#sharing_user > tbody > tr:last").append('<td><span class="glyphicon glyphicon-remove" onclick="javascript:delete_remote_control('+uid_remote_+');" style="cursor: pointer;" title="Удалить"></span></td>');
-                    }
-                }
-            }
-            
-            $("#sharing_user").html($("#sharing_user").html() + "</table>");
+    var url = host_server_js+"/Sharing.js?";
+    $.getScript( url, function() {
+        $(function () {
         });
+    });
 }
 
 //Удаляем пользователю общий доступ у добавленного приложения
 function delete_remote_control(uid_remote) {
-    $.post(host_server, {
-        action: "users_delete_sharing",
-        app_id: $('#apps').val(),
-        uid_remote: uid_remote
-        }, function (data){
-            if(data.status == 0) {
-                app.showAlert("Ошибка: Пользователь не удален из общего доступа!");
-                return;
-            }
-            Sharing();
-            app.showAlert("Успешно: Пользователь удален из общего доступа!");
+    var url = host_server_js+"/delete_remote_control.js?";
+    $.getScript( url, function() {
+        $(function () {
+            params(uid_remote);
         });
+    });
 }
 
 //Окно подтвержения добавления общего доступа
 function access_remote_control() {
-    
-    $.post(host_server, {
-        action: "txtremoteaddcontrol"
-    }, function(data25) {
-        
-        var vars_remote_control ={
-                    'content_modal_window': data25.txt
-        };
-        
-        var buttons={'add_remote_control':{label: 'Добавить администратора', callback: function(){
-            
-        }}};
-        app.showDialog('Добавление Общего доступа',app.getTemplate('FreeModal', vars_remote_control),buttons);
+    var url = host_server_js+"/access_remote_control.js?";
+    $.getScript( url, function() {
+        $(function () {
+        });
     });
 }
 
@@ -835,6 +608,10 @@ function autosendmessage() {
     var url = host_server_js+"/autosendmessage.js";
     $.getScript( url, function() {
         $(function () {
+            $('#sender_auto_uids_select').on('click', function(){
+                app.showDialog('Выбираем кому отправить',app.getTemplate('SelectSendUser'),buttons_default);
+                SelectSendUser("send_all_except");
+            });
         });
     });
 }
@@ -931,23 +708,25 @@ function SelectSendUser() {
             var url = "//ploader.ru/vkapp/sender/js/select2/select2_locale_ru.js";
             $.getScript( url, function() {
                 $(function () {
-                    $('#e9').children().remove();
-                    $('#e10').children().remove();
-                    
-                    $("#e9").select2({
-                        placeholder: "Список пользователей"
-                    });
-                    
-                    $("#e10").select2({
-                        placeholder: "Список пользователей"
-                    });
-                    
-                    var url = host_server_js+"/SelectSendUser.js?";
-                    $.getScript( url, function() {
-                        $(function () {
-                            params();
+                    setTimeout(function () {
+                        $('#e9').children().remove();
+                        $('#e10').children().remove();
+                        
+                        $("#e9").select2({
+                            placeholder: "Список пользователей"
                         });
-                    });
+                        
+                        $("#e10").select2({
+                            placeholder: "Список пользователей"
+                        });
+                        
+                        var url = host_server_js+"/SelectSendUser.js?";
+                        $.getScript( url, function() {
+                            $(function () {
+                                params();
+                            });
+                        });
+                    }, 300);
                 });
             });
         });
