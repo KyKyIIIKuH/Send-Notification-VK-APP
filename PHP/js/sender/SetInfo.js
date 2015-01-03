@@ -1,7 +1,9 @@
 
 $(function()
 {
-    if(!$('#app_title_').val() || !$('#app_id').val() || !$('#app_secret_key').val())
+    title_app = $('#app_title_').val();
+    
+    if(!title_app || !$('#app_id').val() || !$('#app_secret_key').val())
     {
         app.showAlert("Заполните все данные");
         return;
@@ -12,11 +14,17 @@ $(function()
         return;
     }
     
+    if( title_app.indexOf('http://vk.com/') == 0 || title_app.indexOf('https://vk.com/') == 0 )
+    {
+        app.showAlert("Ссылки в названии запрещены!");
+        return;
+    }
+    
     if($('#app_id').val() && $('#app_secret_key').val())
     {
         $.post(host_server, {
             action: "set_setting_app_data",
-            title_app: $('#app_title_').val(),
+            title_app: title_app,
             app_id: $('#AppId_settings').val(),
             app_id_new: $('#app_id').val(),
             key_app: $('#app_secret_key').val()

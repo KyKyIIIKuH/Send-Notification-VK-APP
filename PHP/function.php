@@ -2,6 +2,7 @@
 
 define ("IDAPP", ""); 
 define ("SECRETKEY", ""); 
+define ("AUTORIDVK", ""); 
 
 function connectDB()
 {
@@ -77,8 +78,8 @@ function time_explode_sender($datetime, $hour_plus = 0, $next_day = false)
         $last_datetime_sender_time[1] = "00";
         $last_datetime_sender_time[2] = "00";
     }
-    $last_datetime_sender_ .= $last_datetime_sender_time[0] . ":" . $last_datetime_sender_time[1] .
-        ":" . $last_datetime_sender_time[2];
+    
+    $last_datetime_sender_ .= $last_datetime_sender_time[0] . ":" . $last_datetime_sender_time[1] . ":" . $last_datetime_sender_time[2];
 
     return $last_datetime_sender_;
 }
@@ -302,16 +303,22 @@ function delete_remote_control($id_app, $delete_user = false, $uid = false)
                                         $query_update = "NULL";
                                     else
                                         $query_update = "'" . $id_app_delete . "'";
-                                    $mysqli->query("UPDATE `vk_app_sender_visits` SET `remote_control`={$query_update}  WHERE `uid`='" .
-                                        $uid_ . "';");
+                                    
+                                    if($query_update == "NULL")
+                                        $query_select_app = ",`select_app`=NULL";
+                                    
+                                    $mysqli->query("UPDATE `vk_app_sender_visits` SET `remote_control`={$query_update}{$query_select_app} WHERE `uid`='" . $uid_ . "';");
                                 }
                                 if ($delete_user == true) {
                                     if ($id_app_delete == "")
                                         $query_update = "NULL";
                                     else
                                         $query_update = "'" . $id_app_delete . "'";
-                                    $mysqli->query("UPDATE `vk_app_sender_visits` SET `remote_control`={$query_update} WHERE `uid`='" .
-                                        $uid . "';");
+                                    
+                                    if($query_update == "NULL")
+                                        $query_select_app = ",`select_app`=NULL";
+                                    
+                                    $mysqli->query("UPDATE `vk_app_sender_visits` SET `remote_control`={$query_update}{$query_select_app} WHERE `uid`='" . $uid . "';");
                                 }
                                 $data = true;
                             }
@@ -330,13 +337,14 @@ function add_remote_control($id_app, $uid_added, $uid_remote)
 {
     $data = false;
     $mysqli = connectDB();
-    $query = "SELECT `remote_control` FROM `vk_app_sender_visits` WHERE `uid`='" . $uid_added . "';";
+    $query = "SELECT `remote_control`, `select_app` FROM `vk_app_sender_visits` WHERE `uid`='" . $uid_added . "';";
     if (mysqli_multi_query($mysqli, $query)) {
         do {
             /* получаем первый результирующий набор */
             if ($result = mysqli_store_result($mysqli)) {
                 while ($row = mysqli_fetch_row($result)) {
                     $list_app_ = $row[0];
+                    $select_app_ = $row[1];
 
                     $count = explode("\r\n", $list_app_);
                     $count = count($count);
@@ -364,8 +372,10 @@ function add_remote_control($id_app, $uid_added, $uid_remote)
                             }
                         }
                     }
-
-                    if ($mysqli->query("UPDATE `vk_app_sender_visits` SET `remote_control`='" . $result_ . "' WHERE `uid`='" . $uid_added . "';"))
+                    
+                    if(!$select_app_) $select_app_field = "`select_app`='".$id_app."', ";
+                    
+                    if ($mysqli->query("UPDATE `vk_app_sender_visits` SET {$select_app_field}`remote_control`='" . $result_ . "' WHERE `uid`='" . $uid_added . "';"))
                         $data = true;
                     else
                         $data = false;
@@ -402,7 +412,7 @@ function search_remote_control($id_app)
 
                         if ($value_app_remote[0] != "") {
                             if ("$id_app" == "$value_app_remote[0]") {
-                                if ($uid_admin_remote_control_ != "26887374") {
+                                if ($uid_admin_remote_control_ != AUTORIDVK) {
                                     $i_first++;
 
                                     $row_active = $mysqli->query("SELECT `name` FROM `vk_app_sender_visits` WHERE `uid`='" . $uid_admin_remote_control_ . "';");
@@ -655,38 +665,38 @@ function iframe_url($url, $api_id, $social = 'vk')
 
 function add_cron($datetime, $dirname)
 {
-    $connection = ssh2_connect('localhost', 22);
+    $connection = ssh2_connect("", 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, 'username', 'password');
+    ssh2_auth_password($connection, "", "");
     $stream = ssh2_exec($connection,
-        'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;python add_cron.py -d "' .
-        $datetime . '" -dir "' . $dirname . '"');
+        'cd /PythonScripts/vkapp/sender;python add_cron.py -d "' . $datetime . '" -dir "' . $dirname . '"& 2>&1');
     fclose($stream);
 }
 
-function export($id_app, $uid, $hash_)
+function export()
 {
-    $connection = ssh2_connect('localhost', 22);
+    $connection = ssh2_connect("", 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, 'username', 'password');
+    ssh2_auth_password($connection, "", "");
+    //'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;nohup python export.py -d "' .$id_app . '" -hash "' . $hash_ . '" &');
     $stream = ssh2_exec($connection,
-        'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;nohup python export.py -d "' .
-        $id_app . '" -hash "' . $hash_ . '" &');
+        'cd /PythonScripts/vkapp/sender;python export.py& 2>&1');
     fclose($stream);
+    $connection->disconnect();
 }
 
 function testi($id_app)
 {
     $result = "";
-    $connection = ssh2_connect('localhost', 22);
+    $connection = ssh2_connect("", 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, 'username', 'password');
+    ssh2_auth_password($connection, "", "");
     $stream = ssh2_exec($connection,
-        'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;nohup python countdayvisits.py -d "' .
-        $id_app . '"');
+        'cd /PythonScripts/vkapp/sender;nohup python countdayvisits.py -d "' .
+        $id_app . '"& 2>&1');
     stream_set_blocking($stream, true);
     $result = fread($stream, 4096);
     fclose($stream);
@@ -700,7 +710,7 @@ function check_secure_key($app_id, $secure_key, $social = 'vk')
     $name_ = "";
     if($social == "vk") {
         $VK = new vkapi("{$app_id}", "{$secure_key}");
-        $resp = $VK->api('users.get', array('user_ids' => 26887374, 'fields' =>
+        $resp = $VK->api('users.get', array('user_ids' => AUTORIDVK, 'fields' =>
                 'first_name, last_name'));
         $xml = simplexml_load_string($resp);
         foreach ($xml->user as $movie) {
@@ -901,12 +911,16 @@ function selected_send_user($id_app, $count_page, $first) {
         $userids = "";
         $symbol = "";
         
+        //$data["response"] = array();
         while ($row = $result->fetch_assoc()) {
             
             if ($userids !== "") {
                 $symbol = ",";
             }
             $userids = $userids . $symbol . $row["id_vk"];
+            
+            //$post["id_vk"] = $row["id_vk"];
+            //array_push($data["response"], $post);
         }
         closeDB($mysqli);
         $data["userids"] = $userids;
@@ -990,6 +1004,15 @@ function time_correction($datetime, $timezone1, $timezone2) {
     date_default_timezone_set($timezone2);
     
     return date("Y-m-d H:i:s", $new_datetime);
+}
+
+function country_count($id_app) {
+    $mysqli = connectDB();
+    $row_active = $mysqli->query("SELECT DISTINCT `country` FROM `vk_app_all_visits` WHERE `id_app`='".$id_app."' AND `country` NOT IN ('NULL');");
+    $count = mysqli_num_rows($row_active);
+    closeDB($mysqli);
+    
+    return $count;
 }
 
 function tags_sender($message_send) {

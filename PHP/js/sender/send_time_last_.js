@@ -1,5 +1,5 @@
 
-function params(last_sender_datetime_) {
+function params(last_sender_datetime_) {    
     var url = "//ploader.ru/vkapp/sender/js/countdown/jquery.plugin.js";
     $.getScript( url, function() {
         var url2 = "//ploader.ru/vkapp/sender/js/countdown/jquery.countdown.js";
@@ -19,10 +19,11 @@ function params(last_sender_datetime_) {
                         var austDay = new Date();
                         austDay = new Date(date_[0],month,space[0],time[0], time[1], time[2]);
                         
-                        $('#send_time_last').countdown({until: austDay, format: 'HMS', timezone: +4});
+                        $('#send_time_last').countdown({until: austDay, format: 'HMS', timezone: +3});
                         
                         setInterval(function() {
                             var finish_ = $('#send_time_last').text().split(':');
+                            
                             if(finish_[0] == "0" && finish_[1] == "0" && finish_[2] == "0") {
                                 $('#send_time_last').countdown('destroy'); 
                                 $('#send_time_last').html('<span class="label label-success"><b>Отправка разрешена!</b></span>');

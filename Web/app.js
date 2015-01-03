@@ -18,8 +18,13 @@ var buttons_vip={'cancel':{label: 'Отмена', callback: function(){
 }}};
 
 var control_remote_ = 0;
+
+var selected_user_auto_send = [];
+var selected_user_auto_send_array = [];
+
 var selected_user_send = [];
 var selected_user_send_array = [];
+
 var category_;
 var gRCountAppUser = 0;
 
@@ -43,7 +48,7 @@ app.run=function(){
     
     $('#sender_uids_select').on('click', function(){
         app.showDialog('Выбираем кому отправить',app.getTemplate('SelectSendUser'),buttons_default);
-        SelectSendUser("send_all_except");
+        SelectSendUser("manually_send");
     });
        
     $('#settings_app_').on('click', function(){
@@ -243,13 +248,13 @@ function sender_send() {
     
     var userids = "";
     
-    if(selected_user_send_array[0] != "")
+    if(selected_user_send_array[0] != undefined)
     {
         category_ = 0;
         userids = selected_user_send[0];
     }
     
-    if(selected_user_send_array[1] != "")
+    if(selected_user_send_array[1] != undefined)
     {
         category_ = 1;
         userids = selected_user_send[1];
@@ -280,6 +285,7 @@ function sender_send() {
     }, function(data) {
         if(data.status == 1)
         {
+            
             var error = data.error;
             if(data.error == 1)
             {
@@ -317,6 +323,14 @@ function sender_send() {
                 return;
             }
             */
+            
+            if(data.error == -278) {
+                document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+                document.getElementById("message_sender").removeAttribute("disabled", "disabled");
+                document.getElementById("apps").removeAttribute("disabled", "disabled");
+                app.showAlert(data.message);
+                return;
+            }
             
             if(data.error == -9999)
             {
@@ -608,11 +622,12 @@ function autosendmessage() {
     var url = host_server_js+"/autosendmessage.js";
     $.getScript( url, function() {
         $(function () {
-            $('#sender_auto_uids_select').on('click', function(){
-                app.showDialog('Выбираем кому отправить',app.getTemplate('SelectSendUser'),buttons_default);
-                SelectSendUser("send_all_except");
-            });
         });
+    });
+    
+    $('#sender_auto_uids_select').on('click', function(){
+        app.showDialog('Выбираем кому отправить',app.getTemplate('SelectSendUser'),buttons_default);
+        SelectSendUser("autosend");
     });
 }
 
@@ -701,32 +716,56 @@ function delete_sender(id_sender) {
 }
 
 //Выбираем кому отправить уведомление
-function SelectSendUser() {
+function SelectSendUser(type) {
     var url = "//ploader.ru/vkapp/sender/js/select2/select2.js";
     $.getScript( url, function() {
         $(function () {
             var url = "//ploader.ru/vkapp/sender/js/select2/select2_locale_ru.js";
             $.getScript( url, function() {
                 $(function () {
-                    setTimeout(function () {
-                        $('#e9').children().remove();
-                        $('#e10').children().remove();
-                        
-                        $("#e9").select2({
-                            placeholder: "Список пользователей"
-                        });
-                        
-                        $("#e10").select2({
-                            placeholder: "Список пользователей"
-                        });
-                        
-                        var url = host_server_js+"/SelectSendUser.js?";
-                        $.getScript( url, function() {
-                            $(function () {
-                                params();
+                    setTimeout(function () {                        
+                        if(type == "autosend") {
+                            
+                            $('#e9_auto').children().remove();
+                            $('#e10_auto').children().remove();
+                            
+                            $("#e9_auto").select2({
+                                placeholder: "Список пользователей"
                             });
-                        });
-                    }, 300);
+                            
+                            $("#e10_auto").select2({
+                                placeholder: "Список пользователей"
+                            });
+                            
+                            var url = host_server_js+"/SelectAutoSendUser.js?";
+                            $.getScript( url, function() {
+                                $(function () {
+                                    params();
+                                });
+                            });
+                        }
+                        
+                        if(type == "manually_send") {
+                            
+                            $('#e9').children().remove();
+                            $('#e10').children().remove();
+                            
+                            $("#e9").select2({
+                                placeholder: "Список пользователей"
+                            });
+                            
+                            $("#e10").select2({
+                                placeholder: "Список пользователей"
+                            });
+                            
+                            var url = host_server_js+"/SelectSendUser.js?";
+                            $.getScript( url, function() {
+                                $(function () {
+                                    params();
+                                });
+                            });
+                        }
+                    }, 50);
                 });
             });
         });

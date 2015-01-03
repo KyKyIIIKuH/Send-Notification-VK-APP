@@ -15,6 +15,12 @@ $(function()
         return;
     }
     
+    if( title_app.indexOf('http://vk.com/') == 0 || title_app.indexOf('https://vk.com/') == 0 )
+    {
+        app.showAlert("Ссылки в названии запрещены!");
+        return;
+    }
+    
     $.post(host_server, {
         action: "set_add_new_app",
         title_app: title_app,

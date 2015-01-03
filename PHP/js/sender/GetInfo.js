@@ -1,5 +1,9 @@
 
 function params(app_id, category) {
+    
+    $('#send_count_').html("<p><img src='//vk.com/images/upload.gif'/></p>");
+    $('#coutry_count').html("<p><img src='//vk.com/images/upload.gif'/></p>");
+    
     setTimeout(function () {
         $.post(host_server, {
             action: "get_app_setting",
@@ -12,7 +16,7 @@ function params(app_id, category) {
                 {
                     document.getElementById("static_app").style.display = 'none';
                     document.getElementById("info_app").style.display = 'none';
-                    document.getElementById("block_users").style.display = 'none';
+                    //document.getElementById("block_users").style.display = 'none';
                     document.getElementById("search_user").style.display = 'none';
                     document.getElementById("info_send_list").style.display = 'none';
                     document.getElementById("info_visits_list").style.display = 'none';
@@ -24,7 +28,7 @@ function params(app_id, category) {
             } else {
                     document.getElementById("static_app").style.display = '';
                     document.getElementById("info_app").style.display = '';
-                    document.getElementById("block_users").style.display = '';
+                    //document.getElementById("block_users").style.display = '';
                     document.getElementById("search_user").style.display = '';
                     document.getElementById("info_send_list").style.display = '';
                     document.getElementById("info_visits_list").style.display = '';
@@ -51,7 +55,7 @@ function params(app_id, category) {
                     'app_secret_key': data25.app_secret_key
                 };
                 
-                title_app();
+                //title_app();
                 
                 setTimeout(function() {send_time_last_(data25.datetime_sender); }, 900);
                 
@@ -63,6 +67,8 @@ function params(app_id, category) {
                 $('#send_count_').text(data25.limit_day_send + "/3");
                 
                 $('#coins').text(data25.coins);
+                
+                $('#coutry_count').text(data25.country_count);
                 
                 document.getElementById("big_loading").style.display = 'none';
                 

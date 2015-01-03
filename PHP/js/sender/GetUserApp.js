@@ -1,11 +1,13 @@
 function params(start) {
     
-    document.getElementById("block_users").style.display = '';
+    //document.getElementById("block_users").style.display = '';
     document.getElementById("search_user").style.display = '';
     
     var userarraydata;
     
-    $('#user_list').html("<p><img src='//vk.com/images/upload.gif'/></p>");
+    //$('#user_list').html("<p><img src='//vk.com/images/upload.gif'/></p>");
+    
+    $('#count_users_all').html("<p><img src='//vk.com/images/upload.gif'/></p>");
     
     $.post(host_server, {
         action: "get_app_user_list",
@@ -20,11 +22,12 @@ function params(start) {
         
         if(gRCount == 0)
         {
-            $('#user_list').html("Пусто :(");
+            //$('#user_list').html("Пусто :(");
             $('#count_users_all').text('0');
             return;
         }
         
+        /*
         vkapi.users.get({user_ids: gRUsersUID, v:5.23}, 
                         function(data_vk_users_get){
                             if(data_vk_users_get.response) {
@@ -39,6 +42,7 @@ function params(start) {
                                 $('#user_list').html(user_list);
                             }
                         });
+        */
         
         if(gRCountUserDayVisit != 0)
             gRCountUserDayVisit = "<span style='color:green;'>+"+gRCountUserDayVisit+"</span>";

@@ -3,7 +3,7 @@
 
 from crontab import CronTab
 
-cron    = CronTab(user='kykyiiikuh')
+cron    = CronTab(user='')
 
 #-*- coding: utf8 -*-
 

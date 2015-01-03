@@ -2,67 +2,67 @@
 var sCurrent_user = 0;
 var count_page_ = 50;
 
-$('#e9').on('change', function(){
+$('#e9_auto').on('change', function(){
     
     var url = "//ploader.ru/vkapp/sender/js/json/json2.js";
     $.getScript( url, function() {
         $(function () {
             $(document).ready(function () {
-                var data_selected = $("#e9").select2("data");
+                var data_selected = $("#e9_auto").select2("data");
                 delete data_selected.element;
                 
                 var jsonString = JSON.stringify(data_selected, ["id"]);
                 if(jsonString)
                 {
-                    selected_user_send_array[0] = jsonString;
-                    selected_user_send[0] = $("#e9").val();
+                    selected_user_auto_send_array[0] = jsonString;
+                    selected_user_auto_send[0] = $("#e9_auto").val();
                 }
                 else
                 {
-                    selected_user_send_array[0] = "";
-                    selected_user_send[0] = "";
+                    selected_user_auto_send_array[0] = "";
+                    selected_user_auto_send[0] = "";
                 }
             });
         });
     });
     
-    setTimeout(function () {        
-        if($("#e10").val())
+    setTimeout(function () {
+        if($("#e10_auto").val())
         {
-            if($("#e10").val().length > 0)
+            if($("#e10_auto").val().length > 0)
             {
-                if(!$("#e9").val())
-                    $("#sender_status_").text("В данный момент уведомление будет отправлено только выбранным вами пользователям.");
+                if(!$("#e9_auto").val())
+                    $("#sender_auto_status_").text("В данный момент уведомление будет отправлено только выбранным вами пользователям.");
                 
                 return;
             }
         }
         
-        if(selected_user_send_array[0].length < 5)
-            $("#sender_status_").text("В данный момент уведомление будет отправлено всем пользователям!");
+        if(selected_user_auto_send_array[0].length < 5)
+            $("#sender_auto_status_").text("В данный момент уведомление будет отправлено всем пользователям!");
         else
-            $("#sender_status_").text("В данный момент уведомление будет отправлено всем кроме выбранных вами пользователями.");
+            $("#sender_auto_status_").text("В данный момент уведомление будет отправлено всем кроме выбранных вами пользователями.");
     }, 500);
 });
 
-$('#e10').on('change', function(){
+$('#e10_auto').on('change', function(){
     var url = "//ploader.ru/vkapp/sender/js/json/json2.js";
     $.getScript( url, function() {
         $(function () {
             $(document).ready(function () {                
-                var data_selected = $("#e10").select2("data");
+                var data_selected = $("#e10_auto").select2("data");
                 delete data_selected.element;
                 
                 var jsonString = JSON.stringify(data_selected, ["id"]);
                 if(jsonString)
                 {
-                    selected_user_send_array[1] = jsonString;
-                    selected_user_send[1] = $("#e10").val();
+                    selected_user_auto_send_array[1] = jsonString;
+                    selected_user_auto_send[1] = $("#e10_auto").val();
                 }
                 else
                 {
-                    selected_user_send_array[1] = "";
-                    selected_user_send[1] = "";
+                    selected_user_auto_send_array[1] = "";
+                    selected_user_auto_send[1] = "";
                 }
             });
         });
@@ -70,34 +70,34 @@ $('#e10').on('change', function(){
     
     setTimeout(function () {
         
-        if($("#e9").val())
+        if($("#e9_auto").val())
         {
-            if($("#e9").val().length > 0)
+            if($("#e9_auto").val().length > 0)
             {
-                if(!$("#e10").val())
-                    $("#sender_status_").text("В данный момент уведомление будет отправлено всем кроме выбранных вами пользователями.");
+                if(!$("#e10_auto").val())
+                    $("#sender_auto_status_").text("В данный момент уведомление будет отправлено всем кроме выбранных вами пользователями.");
                 
                 return;
             }
         }
         
-        if(selected_user_send_array[1].length < 5)
-            $("#sender_status_").text("В данный момент уведомление будет отправлено всем пользователям!");
+        if(selected_user_auto_send_array[1].length < 5)
+            $("#sender_auto_status_").text("В данный момент уведомление будет отправлено всем пользователям!");
         else
-            $("#sender_status_").text("В данный момент уведомление будет отправлено только выбранным вами пользователям.");
+            $("#sender_auto_status_").text("В данный момент уведомление будет отправлено только выбранным вами пользователям.");
     }, 500);
 });
 
 function params() {
     
-    if(selected_user_send_array[0])
+    if(selected_user_auto_send_array[0])
     {
         //E9
         var array_e9 = [];
         var post_e9 = [];
         
         var count_e9 = 0;
-        var jsonData = JSON.parse(selected_user_send_array[0]);
+        var jsonData = JSON.parse(selected_user_auto_send_array[0]);
         for (var i = 0; i < jsonData.length; i++) {
             count_e9++;
             var counter = jsonData[i];
@@ -108,17 +108,17 @@ function params() {
         }
         
         if(array_e9)
-            setTimeout(function () { $("#e9").select2("val",array_e9); },200);
+            setTimeout(function () { $("#e9_auto").select2("val",array_e9); },200);
     }
     
-    if(selected_user_send_array[1])
+    if(selected_user_auto_send_array[1])
     {
         //E10
         var array_e10 = [];
         var post_e10 = [];
         
         var count_e10 = 0;
-        var jsonData = JSON.parse(selected_user_send_array[1]);
+        var jsonData = JSON.parse(selected_user_auto_send_array[1]);
         for (var i = 0; i < jsonData.length; i++) {
             count_e10++;
             var counter = jsonData[i];
@@ -129,7 +129,7 @@ function params() {
         }
         
         if(array_e10)
-            setTimeout(function () { $("#e10").select2("val",array_e10); },200);
+            setTimeout(function () { $("#e10_auto").select2("val",array_e10); },200);
     }
     
     $.post(host_server, {
@@ -163,8 +163,8 @@ function params() {
                                     var name_ = data_vk_users_get.response[i].last_name +' ' + data_vk_users_get.response[i].first_name;
                                     var id_vk_ = data_vk_users_get.response[i].id;
                                     
-                                    $("#e9").append($('<option>', {value:id_vk_, text: name_}));
-                                    $("#e10").append($('<option>', {value:id_vk_, text: name_}));
+                                    $("#e9_auto").append($('<option>', {value:id_vk_, text: name_}));
+                                    $("#e10_auto").append($('<option>', {value:id_vk_, text: name_}));
                                 }
                                 else
                                 {

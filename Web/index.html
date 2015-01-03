@@ -6,18 +6,8 @@
     </div>
 <div id="sidebarRight">
     <div style="height:3%;"></div>
-    <div id="block_users" style="display: none;">
-        <div id="name_block">Список пользователей</div>
-        <div id="sidebar_content">
-        <div id="sidebar_content_pr">
-            <form action="" method="post" name="userlist" autocomplete="off">
-                <div class="bot" style="width:98%; height: 115px; overflow: auto;">
-                    <div id="user_list"><p><img src='//vk.com/images/upload.gif'/></p></div>
-                </div>
-            </form>
-        </div></div>
-	</div>
     
+    <br/><br/>
     <div id="search_user" style="display: none;">
         <div id="name_block">Поиск пользователя</div>
             <div id="sidebar_content">
@@ -38,6 +28,12 @@
                             <div id="search_user_list"></div>
                         </div>
                     </form>
+                </div>
+            </div>
+        
+            <div id="">
+                <div id="">
+                    <img width="250" height="250" src="https://4.downloader.disk.yandex.ru/preview/bc05d134e0f0b04198beae230f49e3f1/mpfs/1_HIY3sjsKer3ERWV-yblQcZzYGdm5CQszKMDv4t3OWDj7fI42M1jfPn9CB7YxxPL2IiCIC6iZgzCVGCGS2ghw%3D%3D?uid=91147175&filename=Photo032gif&disposition=inline&hash=&limit=0&content_type=image%2Fgif&size=285x500" />
                 </div>
             </div>
     </div>
@@ -195,16 +191,6 @@
 </script>
 <!-- Код для вставки -->
     
-<!-- VIP -->
-<script type="text/html" id="tmplVIP">
-<li>Автоматическая отправка уведомлений, с указанием времени и заранее написанным текстом.</li>
-<li>Экспорт и Импорт пользователей.</li>
-<li>Отправка уведомлений > 100 пользователям.</li>
-<li>Возможность удаления своего приложения из системы "Отправка Уведомлений".</li>
-<li>Убирается лимит на добавление приложений, в данный момент лимитом является 3 приложения.</li>
-</script>
-<!-- VIP -->
-    
 <!-- Общий доступ -->
 <script type="text/html" id="tmplSharing">
 <p>
@@ -291,10 +277,12 @@
     <div id="myTabContent" class="tab-content">
     	<div class="tab-pane fade active in" id="all_except">
             <select multiple="" name="e9" id="e9" style="width:500px" class="populate select2-offscreen" tabindex="-1"></select>
+            <select multiple="" name="e9_auto" id="e9_auto" style="width:500px" class="populate select2-offscreen" tabindex="-1"></select>
     	</div>
         
     	<div class="tab-pane fade" id="send_only">
         	<select multiple="" name="e10" id="e10" style="width:500px" class="populate select2-offscreen" tabindex="-1"></select>
+            <select multiple="" name="e10_auto" id="e10_auto" style="width:500px" class="populate select2-offscreen" tabindex="-1"></select>
     	</div>
     </div>
 </script>
@@ -317,7 +305,8 @@
     <tr><td colspan="10">&nbsp;</td></tr>
     <tr>
     	<td colspan="10">
-        	<button id="sender_auto_uids_select" name="sender_auto_uids_select" type="button" class="btn btn-success" onclick="javascript:;">Выбрать кому отправить (Скоро)</button>
+        	<button id="sender_auto_uids_select" name="sender_auto_uids_select" type="button" class="btn btn-success" onclick="javascript:;">Выбрать кому отправить</button>
+            <div id="sender_auto_status_">В данный момент уведомление будет отправлено всем пользователям!</div>
     </td>
     </tr>
     <tr><td colspan="10">&nbsp;</td></tr>
@@ -397,6 +386,17 @@
                             <td><span id="send_count_"><p><img src='//vk.com/images/upload.gif'/></p></span></td>
                             <td><span id="send_time_last"><p><img src='//vk.com/images/upload.gif'/></p></span></td>
                             <td><span id="count_users_all"><p><img src='//vk.com/images/upload.gif'/></p></span></td>
+                        </tr>
+                    </table>
+                    <br/>
+                    <table class="CSSTableGenerator" width="100%" border="1">
+                        <tr>
+                            <td style="text-align:center;">Кол-во Стран посетивших приложение</td>
+                            <td style="text-align:center;">Список посетивших Стран</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;"><span id="coutry_count"><p><img src='//vk.com/images/upload.gif'/></p></span></td>
+                            <td style="text-align:center;">Скоро</td>
                         </tr>
                     </table>
                     <br/>
@@ -498,7 +498,7 @@
                     <span style="display:none;"><iframe src="//ploader.ru/counter.html" frameborder="0" scrolling="no" width="110" height="40"></iframe></span>
                     
                 </td>
-                <td align="right">Отправка Уведомлений <p> <a href="//vk.com/kykyiiikuh" target="_blank">Базаров  Денис</a> © 2014</p></td>
+                <td align="right">Отправка Уведомлений <p> <a href="//vk.com/kykyiiikuh" target="_blank">Базаров  Денис</a> © 2015</p></td>
             </tr>
         </table>
     </div>
