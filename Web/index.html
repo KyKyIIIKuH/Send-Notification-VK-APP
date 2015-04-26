@@ -30,12 +30,6 @@
                     </form>
                 </div>
             </div>
-        
-            <div id="">
-                <div id="">
-                    <img width="250" height="250" src="https://4.downloader.disk.yandex.ru/preview/bc05d134e0f0b04198beae230f49e3f1/mpfs/1_HIY3sjsKer3ERWV-yblQcZzYGdm5CQszKMDv4t3OWDj7fI42M1jfPn9CB7YxxPL2IiCIC6iZgzCVGCGS2ghw%3D%3D?uid=91147175&filename=Photo032gif&disposition=inline&hash=&limit=0&content_type=image%2Fgif&size=285x500" />
-                </div>
-            </div>
     </div>
     
     <div id="today_action_list" style="display: none;">
@@ -273,7 +267,7 @@
         </ul>
     <p></p>
     
-    <p><span id="load_user"></span></p>
+    <p><span id="load_user"><img src='//vk.com/images/upload.gif'/></span></p>
     <div id="myTabContent" class="tab-content">
     	<div class="tab-pane fade active in" id="all_except">
             <select multiple="" name="e9" id="e9" style="width:500px" class="populate select2-offscreen" tabindex="-1"></select>
@@ -298,9 +292,10 @@
         	<textarea name="message_auto_sender" id="message_auto_sender" cols="50" rows="5" wrap="virtual" maxlength="253" style="resize: none;"></textarea>
    	 	</td>
     </tr>
+    <tr><td>&nbsp;</td><td colspan="10"><span>Осталось символов: <span id="message_auto_length">253</span></span></td></tr>
     <tr>
     	<td>Дата/Время:</td>
-        <td><input type="text" value="" id="datetimepicker" placeholder="Дата/Время"/></td>
+        <td><input type="text" value="" id="datetimepicker" placeholder="Дата/Время" readonly="readonly"/></td>
     </tr>
     <tr><td colspan="10">&nbsp;</td></tr>
     <tr>
@@ -312,22 +307,25 @@
     <tr><td colspan="10">&nbsp;</td></tr>
     <tr>
         <td colspan="10">
-            <button id="sender_auto_message" name="sender_auto_message" type="button" class="btn btn-primary" onclick="javascript:autoaddaction();">Добавить задание</button> <span>Осталось символов: <span id="message_auto_length">253</span></span>
+            <button id="sender_auto_message" name="sender_auto_message" type="button" class="btn btn-primary" onclick="javascript:autoaddaction();">Добавить задание</button>
         </td>
     </tr>
 </table>
 </p>
 <p>
-<table class="table table-hover" id="autosend_list_active">
+<table class="table table-hover">
       <thead>
         <tr>
           <th>#</th>
-          <th width="20%">Сообщение</th>
-          <th>Дата/Время старта</th>
-          <th>Выполнено</th>
-          <th>Статус</th>
+          <th align="center">Сообщение</th>
+          <th align="center">Дата/Время старта</th>
+          <th align="center">Выполнено</th>
+          <th align="center">Статус</th>
+          <th></th>
         </tr>
       </thead>
+      <tbody id="autosend_list_active">
+    </tbody>
 </table>
 </p>
 <p><a href="#" onclick="javacript:autosendmessage();;"><img align="right" src="//ploader.ru/vkapp/sender/images/file1336772549.png" width="24" height="24" rel="tooltip" data-toggle="tooltip" data-placement="left" title="Обновить"/></a></p>
@@ -491,9 +489,8 @@
                 <td align="left">
                     <a href="//github.com/KyKyIIIKuH/Send-Notification-VK-APP" target="_blank"><img src="//assets-cdn.github.com/favicon.ico" /></a>
                     
-                    <a target="_blank" href='//host-tracker.com/ru/website-monitoring-statistics/9952629/lvuc/'><img
-                    width='80' height='15' border='0' alt='службы мониторинга серверов' rel='nofollow'
-                    src="//ext.host-tracker.com/uptime-img/?s=15&amp;t=9952629&amp;m=00.09&amp;p=Total&amp;src=lvuc" /></a>
+                    <a href="http://www.host-tracker.com/UptimeGraph/UptimeInfo/49971743-58a8-4dcd-aecb-c339bf5da395"  target='_blank'>
+                    <img id='HostTrackerInformer' width='80' height='15' border='0' alt='website monitoring results and uptime stats' src="//i.h-t.co/ip lookup.png?id=49971743-58a8-4dcd-aecb-c339bf5da395" /></a>
                     
                     <span style="display:none;"><iframe src="//ploader.ru/counter.html" frameborder="0" scrolling="no" width="110" height="40"></iframe></span>
                     

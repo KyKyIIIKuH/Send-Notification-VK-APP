@@ -1,5 +1,4 @@
 <?
-usleep(1000);
 set_time_limit(0);
 
 $time_start_load = microtime(true);
@@ -12,15 +11,15 @@ header('Access-Control-Allow-Origin: *');
 
 //ini_set('date.timezone', 'Europe/Moscow');
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+//ini_set('display_errors', 1);
+//error_reporting(E_ALL);
 
 define('ROOT_DIR', dirname(__file__));
 require_once ROOT_DIR . '/../modules/vkapi.class.php';
-//require_once ROOT_DIR . '/../modules/odnoklassniki_sdk.php';
+require_once ROOT_DIR . '/../modules/odnoklassniki_sdk.php';
 require_once ROOT_DIR . '/../modules/simple_html_dom.php';
 require_once ROOT_DIR . '/function.php';
-//require_once ROOT_DIR . '/../../okapp/sender/function.php';
+require_once ROOT_DIR . '/../../okapp/sender/function.php';
 //require_once ROOT_DIR . '/function_new.php';
 
 if (isset($_GET["TEST"])) {
@@ -76,13 +75,16 @@ if (isset($_POST["action"])) {
         if(isset($_POST["auth_key"])) $auth_key_ = $_POST["auth_key"]; else return;
     }
     
-    $security_ = md5(IDAPP."_".$uid."_".SECRETKEY);
+    //$security_ = md5(IDAPP."_".$uid."_".SECRETKEY);
+    $security_ = null;
     
-    if($id_app_iframe == 4181067)
+    if($id_app_iframe == IDAPP)
         $security_ = md5(IDAPP."_".$uid."_".SECRETKEY);
     else {
         $data_apps_ = data_app($id_app);
-        $security_ = md5($id_app."_".$uid."_"."{$data_apps_["list_secret_key_app"]}");
+        if(isset($data_apps_["list_secret_key_app"])) {
+            $security_ = md5($id_app."_".$uid."_"."{$data_apps_["list_secret_key_app"]}");
+        }
     }
     
     if($auth_key_ != $security_) {
@@ -91,6 +93,32 @@ if (isset($_POST["action"])) {
         return;
     }
     
+    //Проверка аккаунта на блокировку
+    $mysqli = connectDB();
+    $row_active = $mysqli->query("SELECT `banned`, `banned_message`, `status` FROM `vk_app_sender_visits` WHERE `uid`='" . $uid . "';");
+    $row1_active = $row_active->fetch_assoc();
+    
+    $banned_user_ = "";
+    $status_user_ = "";
+    $banned_message_user_ = "";
+    
+    if(isset($row1_active["banned"]) && isset($row1_active["banned_message"]) && isset($row1_active["status"])) {
+        $banned_user_ = $row1_active["banned"];
+        $status_user_ = $row1_active["status"];
+        $banned_message_user_ = $row1_active["banned_message"];
+    }
+    closeDB($mysqli);
+    
+    if(isset($banned_user_) && isset($status_user_) && isset($banned_message_user_)) {
+        if($banned_user_ == 1 && $status_user_ == 0) {
+            $response["banned"] = $banned_user_;
+            $response["status"] = $status_user_;
+            $response["message"] = $banned_message_user_;
+            echo json_encode($response);
+            return;
+        }
+    }
+        
     $mysqli = connectDB();
     $row_active = $mysqli->query("SELECT `utc` FROM `vk_app_sender_visits` WHERE `uid`='" . $uid . "';");
     $row1_active = $row_active->fetch_assoc();
@@ -104,7 +132,7 @@ if (isset($_POST["action"])) {
         if ($id_app) {
             $mysqli = connectDB();
             if ($id_app) {
-                if ("{$id_app}" == "4181067" && $social == "vk" || "{$id_app}" == "1092221952" && $social == "ok") {
+                if ("{$id_app}" == IDAPP && $social == "vk" || "{$id_app}" == "1092221952" && $social == "ok") {
                     $row_active = $mysqli->query("SELECT `hash`, `visits` FROM `vk_app_sender_visits` WHERE `uid`='" .
                         $uid . "';");
                     $row1_active = $row_active->fetch_assoc();
@@ -169,21 +197,26 @@ if (isset($_POST["action"])) {
                 
                 if(isset($_SERVER["HTTP_REFERER"]))
                     iframe_url($_SERVER["HTTP_REFERER"], $id_app, $social);
-
-                $mysqli->query("INSERT INTO `vk_app_all_visits` (`hash`, `id_app`, `id_vk`, `date`, `visits`, `country`, `social`) VALUES (" .
+                
+                //$geoip_country = geoip_country_code3_by_name($_SERVER['REMOTE_ADDR']);
+                $geoip_country = "NULL";
+                if( geoip_country_code3_by_name($_SERVER['REMOTE_ADDR']) ) $geoip_country = geoip_country_code3_by_name($_SERVER['REMOTE_ADDR']);
+                
+                $mysqli->query("INSERT INTO `vk_app_all_visits` (`hash`, `id_app`, `id_vk`, `date`, `visits`, `country`, `ip`, `social`) VALUES (" .
                     $hash_ . ", '" . $id_app . "', '" . $uid . "', '" . date("Y-m-d H:i:s") .
-                    "', '" . $visits_ . "', '".geoip_country_code3_by_name($_SERVER['REMOTE_ADDR'])."', '" . $social . "') ON DUPLICATE KEY UPDATE `date` = VALUES(`date`), `visits` = (`visits`+1), `country` = VALUES(`country`);");
+                    "', '" . $visits_ . "', '".$geoip_country."', '".$_SERVER['REMOTE_ADDR']."', '" . $social . "') ON DUPLICATE KEY UPDATE `date` = VALUES(`date`), `visits` = (`visits`+1), `country` = VALUES(`country`);");
                 
                 if ($visits_ == 0) {
                     $mysqli->query("UPDATE `vk_app_all_visits` SET `first_visit`='" . date("Y-m-d H:i:s") .
                         "' WHERE `hash`=" . $hash_ . ";");
                 }
                 
-                $mysqli->query("INSERT INTO `vk_app_all_visits_logs` (`hash`, `id_app`, `id_vk`, `date`, `country` , `social`) VALUES ('" .
+                $mysqli->query("INSERT INTO `vk_app_all_visits_logs` (`hash`, `id_app`, `id_vk`, `date`, `country` , `ip`, `social`) VALUES ('" .
                     md5(time() . "SENDER") . "', '" . $id_app . "', '" . $uid .
-                    "', '" . date("Y-m-d H:i:s") . "', '".geoip_country_code3_by_name($_SERVER['REMOTE_ADDR'])."', '" . $social . "');");
+                    "', '" . date("Y-m-d H:i:s") . "', '".$geoip_country."', '".$_SERVER['REMOTE_ADDR']."', '" . $social . "');");
             }
             closeDB($mysqli);
+            $response["status"] = 1;
         }
         
         echo json_encode($response);
@@ -209,7 +242,7 @@ if (isset($_POST["action"])) {
             echo json_encode($response);
             return;
         }
-
+        
         $response["valid_app"] = 1;
 
         if (!check_secure_key($id_app, "{$key_app}", $social)) {
@@ -443,7 +476,11 @@ if (isset($_POST["action"])) {
             echo json_encode($response);
             return;
         }
-
+        
+        //Проверка на существование приложения
+        $valid_app_social = valid_app($id_app, $social);
+        $response["valid_app_social"] = $valid_app_social;
+        
         $mysqli = connectDB();
         $row_active = $mysqli->query("SELECT `title_app`, `list_app`, `list_secret_key`, `bonus` FROM `vk_app_sender_visits` WHERE `uid`='" . $uid . "';");
         $row1_active = $row_active->fetch_assoc();
@@ -511,6 +548,14 @@ if (isset($_POST["action"])) {
             }
         }
         
+        $data_app_ = data_app($id_app);
+        $valid_null_bool = (strpos($data_app_["iframe_url"], "NULL"));
+        
+        if($valid_null_bool === false)
+            $response["iframe_url"] = $data_app_["iframe_url"];
+        else
+            $response["iframe_url"] = "2 > ". $valid_null_bool;
+        
         $response["country_count"] = country_count($id_app);
         $response["coins"] = $bonus_;
         echo json_encode($response);
@@ -532,13 +577,36 @@ if (isset($_POST["action"])) {
             echo json_encode($response);
             return;
         }
+        
+        if (!check_secure_key($id_app, "".data_app($id_app)["list_secret_key_app"]."", $social)) {
+            $response["status"] = 0;
+            $response["error"] = -460;
+            $response["message"] = "В настройках приложения введен неверный 'Защищённый ключ'!";
+            echo json_encode($response);
+            return;
+        }
+        
+        //
+        /*
+        $valid_app_ = valid_app($id_app);
 
+        if ($valid_app_ == 0) {
+            $response["status"] = 0;
+            $response["error"] = -3987;
+            $response["message"] = "[VK] Данное приложение Удалено/Заблокировано.";
+            echo json_encode($response);
+            return;
+        }
+        */
+        
+        /*
         $status_valid_user_app = valid_user_app($id_app, $uid);
         if ($status_valid_user_app["status"] == 0) {
             $response = "";
             echo json_encode($response);
             return;
         }
+        */
         
         /*
         $mysqli = connectDB();
@@ -555,6 +623,18 @@ if (isset($_POST["action"])) {
             return;
         }
         */
+        
+        if(isset(data_app($id_app)["iframe_url"])) {
+            $valid_app_register_bool = strpos(data_app($id_app)["iframe_url"], "NULL");
+            
+            if($valid_app_register_bool !== false) {
+                $response["status"] = 0;
+                $response["error"] = 459;
+                $response["message"] = "Скрипт регистрации не регистрирует посещения, проверьте скрипт регистрации посещений в вашем приложении!";
+                echo json_encode($response);
+                return;
+            }
+        }
         
         if (isset($_POST["message"])) {
             $message = strip_tags($_POST["message"]);
@@ -612,7 +692,7 @@ if (isset($_POST["action"])) {
         closeDB($mysqli);
         $progress_send = sprintf("%01.0f%", $first / $count_sFinish * 100, '');
         $progress_send = number_format($progress_send);
-
+        
         if ($count_sFinish < $first)
             $progress_send = 100;
         
@@ -691,31 +771,48 @@ if (isset($_POST["action"])) {
                 closeDB($mysqli);
                 
                 $mysqli = connectDB();
-                $row_sender_list_ = $mysqli->query("SELECT `status` FROM `vk_app_sender_list` WHERE `app_id`='" . $id_app_select . "' AND `hash`='".$hash_list_."' ORDER BY `id` DESC;");
+                $row_sender_list_ = $mysqli->query("SELECT `status`, `datetime` FROM `vk_app_sender_list` WHERE `app_id`='" . $id_app_select . "' AND `hash`='".$hash_list_."' ORDER BY `id` DESC;");
                 $row_sender_list_res = $row_sender_list_->fetch_assoc();
                 $status_ = $row_sender_list_res["status"];
+                $datetime_send_ = $row_sender_list_res["datetime"];
                 closeDB($mysqli);
-
-                //$time_ = explode(":", $datetime);
-                //$start = strtotime($time_[0] . ":" . $time_[1] . ":" . $time_[2]);
-                $load_second = load_second_page($time_start_load) + 10;
-                $start = strtotime($datetime);
-                $old = $start + ($load_second);
-                $real_time = time();
-                $time_ = time_2(date("Y-m-d H:i:s", $old));
-                //$time_ = explode(":", $time_);
                 
-                if ($real_time > $old) {
-                    if($status_ == 1) {
+                if($status_ == 1) {
+                    
+                    $time_send_old = time_2($datetime_send_);
+                    
+                    if($time_send_old["days"] == 0 && $time_send_old["hours"] < 1) {
                         //исчерпан лимит в час
-                        if ($time_["hours"] < 1 && $time_["days"] == 0) {
-                            $response["status"] = 0;
-                            $response["error"] = -3;
-                            $response["message"] = "Время для следующей отправки еще не наступило.";
-                            echo json_encode($response);
-                            return;
+                        $response["status"] = 0;
+                        $response["error"] = -3;
+                        $response["message"] = "Время для следующей отправки еще не наступило.";
+                        echo json_encode($response);
+                        return;
+                    }
+                    
+                    /*
+                    //$time_ = explode(":", $datetime);
+                    //$start = strtotime($time_[0] . ":" . $time_[1] . ":" . $time_[2]);
+                    $load_second = load_second_page($time_start_load) + 20;
+                    $start = strtotime($datetime);
+                    $old = $start + ($load_second);
+                    $real_time = time();
+                    $time_ = time_2(date("Y-m-d H:i:s", $old));
+                    //$time_ = explode(":", $time_);
+                    
+                    if ($real_time > $old) {
+                        if($status_ == 1) {
+                            //исчерпан лимит в час
+                            if ($time_["hours"] < 1 && $time_["days"] == 0) {
+                                $response["status"] = 0;
+                                $response["error"] = -3;
+                                $response["message"] = "Время для следующей отправки еще не наступило.";
+                                echo json_encode($response);
+                                return;
+                            }
                         }
                     }
+                    */
                 }
             }
             
@@ -754,7 +851,7 @@ if (isset($_POST["action"])) {
             closeDB($mysqli);
 
 
-            $response["test"] = $userids . "\n";
+            $response["test"] = $userids. "\n";
             
             /*********************/
             
@@ -949,12 +1046,30 @@ if (isset($_POST["action"])) {
         }
 
         $mysqli = connectDB();
-        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_list` WHERE `app_id`='" .
-            $app_id . "';");
+        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_list` WHERE `app_id`='" . $app_id . "';");
         $row2 = $row1->fetch_assoc();
         $count = $row2["count"];
         $response["count"] = $count;
-
+        
+        //Блокируем попытку отправить уведомление если не прошло n количество времени
+        $response["response_send"] = array();
+        $row1 = $mysqli->query("SELECT `datetime` FROM `vk_app_sender_logs` WHERE `app_id`='" . $app_id . "' ORDER BY `id` DESC;");
+        $row2 = $row1->fetch_assoc();
+        
+        if(isset($row2["datetime"])) {
+            $datetime_block_send = $row2["datetime"];
+            
+            $param0 = explode("-", $datetime_block_send);
+            
+            if(isset($param0)) {
+                $param1 = explode(" ", $param0[2]);
+            }
+            
+            $post["param0"] = time_2($param0[0]."-".$param0[1]."-".$param1[0]." ". $param1[1]);
+            
+            array_push($response["response_send"], $post);
+        }
+        
         $mysqli->real_query("SELECT `id`, `message`, `datetime`, `type` FROM `vk_app_sender_list` WHERE `app_id`='" .
             $app_id . "' ORDER BY `datetime` DESC LIMIT 0 , 3;");
         $result = $mysqli->use_result();
@@ -1045,7 +1160,7 @@ if (isset($_POST["action"])) {
                 '<img id="info_user_logs_" onclick="javascript:app.showDialog(\'Информация о посещениях пользователя\',app.getTemplate(\'InfoUserLogSelect\'),buttons_default);setTimeout(function() { info_user_logs(' .
                 $row["id_vk"] . ', 0); }, 700);;" style="cursor: pointer;" src="//ploader.ru/vkapp/sender/images/app_info.png" width="24" height="24" rel="tooltip" data-toggle="tooltip" data-placement="left" title="Информация о посещениях пользователя" />';
             if(isset($row["country"]))
-                $post["country"] = "<img src=\"//".$_SERVER["SERVER_NAME"]."/vkapp/sender/images/flags/".$row["country"].".gif\" />";
+                $post["country"] = "<img width=\"24\" height=\"24\" src=\"//".$_SERVER["SERVER_NAME"]."/vkapp/sender/images/flags/".$row["country"].".gif\" />";
             else
                 $post["country"] = "";
             array_push($response["response"], $post);
@@ -1235,7 +1350,7 @@ if (isset($_POST["action"])) {
         $i_first = 0;
 
         $mysqli = connectDB();
-        $query = "SELECT `message`, `datetime_start`, `progress`, `status` FROM `vk_app_sender_autosend` WHERE `id_app`='" .
+        $query = "SELECT `message`, `datetime_start`, `progress`, `status`, `id` FROM `vk_app_sender_autosend` WHERE `id_app`='" .
             $id_app . "' ORDER BY `id` ASC LIMIT 0 , 15;";
         $response["response"] = array();
         if (mysqli_multi_query($mysqli, $query)) {
@@ -1249,21 +1364,24 @@ if (isset($_POST["action"])) {
                         $datetime_start_ = $row[1];
                         $progress_ = $row[2];
                         $status_ = $row[3];
+                        $id_ = $row[4];
 
                         if ($progress_ != 100)
                             if ($status_ == 1)
-                                $status_ = "Выполняется";
+                                $status_ = 2;
                             else
-                                $status_ = "Ждёт выполнения";
+                                $status_ = 0;
                         else
-                            $status_ = "Выполнено";
+                            $status_ = 1;
                         
                         $datetime_start_ = time_correction($datetime_start_, "Europe/Moscow", $timezone_);
                         
+                        $post["id"] = $id_;
                         $post["message"] = $message_;
                         $post["datetime_start"] = $datetime_start_;
                         $post["progress"] = $progress_;
                         $post["status"] = $status_;
+                        
                         array_push($response["response"], $post);
                     }
                     mysqli_free_result($result);
@@ -1283,6 +1401,14 @@ if (isset($_POST["action"])) {
         $status_valid_user_app = valid_user_app($id_app, $uid);
         if ($status_valid_user_app["status"] == 0) {
             $response = "";
+            echo json_encode($response);
+            return;
+        }
+        
+        if (!check_secure_key($id_app, "".data_app($id_app)["list_secret_key_app"]."", $social)) {
+            $response["status"] = 0;
+            $response["error"] = -460;
+            $response["message"] = "В настройках приложения введен неверный 'Защищённый ключ'!";
             echo json_encode($response);
             return;
         }
@@ -1339,30 +1465,29 @@ if (isset($_POST["action"])) {
         $day_next = strtotime($datetime) + (1 * 24 * 60 * 60);
         $datetime_new = date("Y-m-d", $day_next);
 
-        $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_list` WHERE datetime between '{$datetime}' and '{$datetime_new}' AND `app_id`='" .
-            $id_app . "';");
+        $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_list` WHERE datetime between '{$datetime}' and '{$datetime_new}' AND `app_id`='" . $id_app . "';");
         $row6 = $row5->fetch_assoc();
         $count_day_send = $row6["count"];
 
-        $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_autosend` WHERE datetime_start between '{$datetime}' and '{$datetime_new}' AND `id_app`='" .
-            $id_app . "';");
+        $row5 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_sender_autosend` WHERE datetime_start between '{$datetime}' and '{$datetime_new}' AND `id_app`='" . $id_app . "';");
         $row6 = $row5->fetch_assoc();
         $count_day_auto_send = $row6["count"];
+        
+        $row5_12 = $mysqli->query("SELECT `datetime` FROM `vk_app_sender_logs` WHERE `app_id`='" . $id_app . "' ORDER BY `id` DESC;");
+        $row6_12 = $row5_12->fetch_assoc();
+        $datetime_auto_send_last = $row6_12["datetime"];
         closeDB($mysqli);
-
-        /*
-        $time_ = time_($datetime_);
-        $time_ = explode(":", $time_);
+        
+        $time_ = time_2($datetime_auto_send_last);
         
         //исчерпан лимит в этот час
-        if ($time_[0] < 1 && $time_[1] < 59) {
-        $response["status"] = 0;
-        $response["message"] = "В этом часе лимит уведомлений исчерпан, выберите другое время отправки.";
-        $response["error"] = -3;
-        echo json_encode($response);
-        return;
+        if ($time_["hours"] < 1 && $time_["min"] < 59) {
+            $response["status"] = 0;
+            $response["message"] = "В этом часе лимит уведомлений исчерпан, выберите другое время отправки автоматического уведомления.";
+            $response["error"] = -3;
+            echo json_encode($response);
+            return;
         }
-        */
 
         //исчерпан лимит в этот день
         if ($count_day_send == 3 || $count_day_auto_send == 3) {
@@ -1381,11 +1506,14 @@ if (isset($_POST["action"])) {
         
         $data_apps_ = data_app($id_app);
         
-        if ($mysqli->query("INSERT INTO `vk_app_sender_autosend` (`hash`, `id_app`, `uid`, `message`, `useruids`, `secret_key_app`, `category`, `datetime_start`) VALUES ('" . $hash_sender_ . "', '" . $id_app . "', '" . $uid . "', '" . $message_ . "', {$useruids_}, '".$data_apps_["list_secret_key_app"]."', {$category_}, '" . $datetime_ . "');")) {
+        $row1_countline = $mysqli->query("SELECT `id` FROM `vk_app_sender_autosend`;");
+        $count_line = $row1_countline->num_rows;
+        $count_line = $count_line + 1;
+        
+        if ($mysqli->query("INSERT INTO `vk_app_sender_autosend` (`line`, `hash`, `id_app`, `uid`, `message`, `useruids`, `secret_key_app`, `category`, `datetime_start`) VALUES ('".$count_line."', '" . $hash_sender_ . "', '" . $id_app . "', '" . $uid . "', '" . $message_ . "', {$useruids_}, '".$data_apps_["list_secret_key_app"]."', {$category_}, '" . $datetime_ . "');")) {
             $response["status"] = 1;
             
-            add_cron($datetime_,
-                "/var/www/kykyiiikuh/data/PythonScripts/vkapp/sender/autosend.py");
+            //add_cron($datetime_, "/var/www/kykyiiikuh/data/PythonScripts/vkapp/sender/autosend.py");
         } else {
             $response["status"] = 0;
         }
@@ -1686,7 +1814,7 @@ if (isset($_POST["action"])) {
             $response["selected_app"] = $select_app_;
         }
         closeDB($mysqli);
-        
+               
         echo json_encode($response);
         return;
     }
@@ -1755,6 +1883,93 @@ if (isset($_POST["action"])) {
         date_default_timezone_set($timezone_);
         
         $response["datetime"] = date("Y-m-d H:i:s");
+        
+        echo json_encode($response);
+        return;
+    }
+    
+    if ($action == "status_autosend") {
+        
+        $mysqli = connectDB();
+        $row_active = $mysqli->query("SELECT `message` FROM `vk_app_sender_list` WHERE `app_id`='" . $id_app . "' ORDER BY `id` DESC;");
+        $row1_active = $row_active->fetch_assoc();
+        $message_ = $row1_active["message"];
+        
+        $row_active = $mysqli->query("SELECT `progress` FROM `vk_app_sender_autosend` WHERE `id_app`='" . $id_app . "' AND `status`='1' ORDER BY `id` DESC;");
+        $row1_active = $row_active->fetch_assoc();
+        $progress_ = $row1_active["progress"];
+        closeDB($mysqli);
+        
+        if(!isset($message_)) $message_ = null;
+        if(!isset($progress_)) $progress_ = null;
+        
+        $response["message"] = $message_;
+        $response["progress"] = $progress_;
+        
+        echo json_encode($response);
+        return;
+    }
+    
+    if ($action == "status_autosend_read") {
+        
+        if(isset($_POST["id_send"])) $id_send = $_POST["id_send"];
+        
+        $response["status"] = 0;
+        
+        if(isset($id_send) && isset($id_app)) {
+            $response["status"] = 1;
+            
+            $message_ = null;
+            
+            $mysqli = connectDB();
+            $row_active = $mysqli->query("SELECT `message` FROM `vk_app_sender_autosend` WHERE `id_app`='" . $id_app . "' AND `id`='".$id_send."' ORDER BY `id` DESC;");
+            $row1_active = $row_active->fetch_assoc();
+            
+            if(isset($row1_active["message"]))
+                $message_ = $row1_active["message"];
+            closeDB($mysqli);
+            
+            if(isset($message_))
+                $response["message"] = $message_;
+        }
+        
+        echo json_encode($response);
+        return;
+    }
+    
+    if ($action == "delete_autosend") {
+        
+        if(isset($_POST["id_send"])) $id_send = $_POST["id_send"];
+        
+        $response["status"] = 0;
+        
+        if(isset($id_send) && isset($id_app)) {
+            $response["status"] = 1;
+            
+            $response["success"] = 0;
+            $mysqli = connectDB();
+            $row_active = $mysqli->query("SELECT `id` FROM `vk_app_sender_autosend` WHERE `id_app`='" . $id_app . "' ORDER BY `id` DESC;");
+            $count_auto_send = $row_active->num_rows;
+            
+            $row_active = $mysqli->query("SELECT `datetime_start` FROM `vk_app_sender_autosend` WHERE `id_app`='" . $id_app . "' AND `id`='".$id_send."' ORDER BY `id` DESC;");
+            $row1_active = $row_active->fetch_assoc();
+                
+            if(isset($row1_active["datetime_start"])) $datetime_start = $row1_active["datetime_start"];
+            
+            if($mysqli->query("DELETE FROM `vk_app_sender_autosend` WHERE `id`='".$id_send."';")) {
+                $response["success"] = 1;
+            }
+            
+            closeDB($mysqli);
+            
+            /*
+            if($count_auto_send == 1) {
+                if(isset($datetime_start)) {
+                    delete_cron($datetime_start);
+                }
+            }
+            */
+        }
         
         echo json_encode($response);
         return;

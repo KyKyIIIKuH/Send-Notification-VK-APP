@@ -1,8 +1,12 @@
 <?
 
-define ("IDAPP", ""); 
-define ("SECRETKEY", ""); 
-define ("AUTORIDVK", ""); 
+define ("IDAPP", "");
+define ("SECRETKEY", "");
+define ("AUTORIDVK", "");
+
+define ("SSH2_IP", "");
+define ("SSH2_LOGIN", "");
+define ("SSH2_PASSWORD", "");
 
 function connectDB()
 {
@@ -115,7 +119,7 @@ function valid_app($app_id, $social = "vk")
         $json = file_get_contents("http://vk.com/app" . $app_id);
     
         $json = mb_convert_encoding($json, 'HTML-ENTITIES', "windows-1251");
-    
+        
         $valid_app_admin_bool = (strpos($json, " was disabled by site administrators."));
         $valid_app_not_download_bool = (strpos($json,
             " has not been uploaded by the user."));
@@ -173,7 +177,7 @@ function data_app($id_app)
 {
     $data[] = array();
     $mysqli = connectDB();
-    $query = "SELECT `title_app`, `list_app`, `list_secret_key`, `uid`, `name` FROM `vk_app_sender_visits`;";
+    $query = "SELECT `title_app`, `list_app`, `list_secret_key`, `uid`, `name`, `iframe_url` FROM `vk_app_sender_visits`;";
     if (mysqli_multi_query($mysqli, $query)) {
         do {
             /* получаем первый результирующий набор */
@@ -184,14 +188,16 @@ function data_app($id_app)
                     $list_secret_key_app_ = $row[2];
                     $uid_user_app_ = $row[3];
                     $name_user_app_ = $row[4];
+                    $iframe_url_ = $row[5];
 
-                    if (isset($list_app_) && isset($list_app_) && isset($list_secret_key_app_)) {
+                    if (isset($title_app_) && isset($list_app_) && isset($list_secret_key_app_) && isset($iframe_url_)) {
                         $count = explode("\r\n", $list_app_);
                         $count = count($count);
 
                         $title_app_array = explode("\r\n", $title_app_);
                         $list_app_array = explode("\r\n", $list_app_);
                         $list_secret_key_app_array = explode("\r\n", $list_secret_key_app_);
+                        $list_iframe_url_array = explode("\r\n", $iframe_url_);
 
                         for ($i = 0; $i < $count; $i++) {
                             if ("$id_app" == "$list_app_array[$i]") {
@@ -200,6 +206,7 @@ function data_app($id_app)
                                 $data["title_app"] = $title_app_array[$i];
                                 $data["id_app"] = $list_app_array[$i];
                                 $data["list_secret_key_app"] = $list_secret_key_app_array[$i];
+                                $data["iframe_url"] = $list_iframe_url_array[$i];
                             }
                         }
                     }
@@ -541,7 +548,7 @@ function iframe_url($url, $api_id, $social = 'vk')
 {
     $result_data = false;
     
-    $value_app_frame = explode("http://", $url);
+    $value_app_frame = explode("://", $url);
     if(isset($value_app_frame[1]))
     {
         $value_app_frame = explode("?", $value_app_frame[1]);
@@ -665,24 +672,36 @@ function iframe_url($url, $api_id, $social = 'vk')
 
 function add_cron($datetime, $dirname)
 {
-    $connection = ssh2_connect("", 22);
+    $connection = ssh2_connect(SSH2_IP, 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, "", "");
+    ssh2_auth_password($connection, SSH2_LOGIN, SSH2_PASSWORD);
     $stream = ssh2_exec($connection,
-        'cd /PythonScripts/vkapp/sender;python add_cron.py -d "' . $datetime . '" -dir "' . $dirname . '"& 2>&1');
+        'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;python add_cron.py -d "' . $datetime . '" -dir "' . $dirname . '"& 2>&1');
     fclose($stream);
+}
+
+function delete_cron($datetime)
+{
+    $connection = ssh2_connect(SSH2_IP, 22);
+    if (!$connection)
+        die('Connection failed');
+    ssh2_auth_password($connection, SSH2_LOGIN, SSH2_PASSWORD);
+    $stream = ssh2_exec($connection,
+        'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;python delete_cron.py -d "' . $datetime . '"& 2>&1');
+    fclose($stream);
+    //$connection->disconnect();
 }
 
 function export()
 {
-    $connection = ssh2_connect("", 22);
+    $connection = ssh2_connect(SSH2_IP, 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, "", "");
+    ssh2_auth_password($connection, SSH2_LOGIN, SSH2_PASSWORD);
     //'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;nohup python export.py -d "' .$id_app . '" -hash "' . $hash_ . '" &');
     $stream = ssh2_exec($connection,
-        'cd /PythonScripts/vkapp/sender;python export.py& 2>&1');
+        'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;python export.py& 2>&1');
     fclose($stream);
     $connection->disconnect();
 }
@@ -690,12 +709,12 @@ function export()
 function testi($id_app)
 {
     $result = "";
-    $connection = ssh2_connect("", 22);
+    $connection = ssh2_connect(SSH2_IP, 22);
     if (!$connection)
         die('Connection failed');
-    ssh2_auth_password($connection, "", "");
+    ssh2_auth_password($connection, SSH2_LOGIN, SSH2_PASSWORD);
     $stream = ssh2_exec($connection,
-        'cd /PythonScripts/vkapp/sender;nohup python countdayvisits.py -d "' .
+        'cd /var/www/kykyiiikuh/data/PythonScripts/vkapp/sender;nohup python countdayvisits.py -d "' .
         $id_app . '"& 2>&1');
     stream_set_blocking($stream, true);
     $result = fread($stream, 4096);

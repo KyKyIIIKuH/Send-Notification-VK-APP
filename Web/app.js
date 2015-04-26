@@ -28,7 +28,11 @@ var selected_user_send_array = [];
 var category_;
 var gRCountAppUser = 0;
 
-app.run=function(){
+var vk_valid_app = false;
+var auto_select_users = false;
+var script_register = false;
+
+app.run=function(){    
     RegisterVisits(); LoadApp();
     
     //Модальные окна
@@ -81,10 +85,16 @@ app.run=function(){
     //Поменяли приложение вывод информации
     $('#apps').change(function(e)
                                 {
+                                    vk_valid_app = false;
+                                    script_register = false;
+                                    
+                                    $('#open_app_').html('<a href="//vk.com/app'+document.getElementById("apps").value+'" class="btn btn-primary" target="_blank" id="btnAppOpen"><span class="glyphicon glyphicon-new-window"></span> Открыть приложение</a>');
+                                    
                                     $("#sender_status_").html("");
                                     $("#message_sender").val("");
                                     $('#search_user_list').html("");
                                     $("#search_uid_user_").val("");
+                                    document.getElementById("message_sender").removeAttribute("disabled", "disabled");
                                     
                                     selected_user_send[0] = "";
                                     selected_user_send[1] = "";
@@ -197,9 +207,11 @@ function sender_send() {
         
         document.getElementById("message_sender").removeAttribute("disabled", "disabled");
         
+        /*
         setTimeout(function () {
-            document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+            //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
         }, 10000);
+        */
         
         document.getElementById("apps").removeAttribute("disabled", "disabled");
         
@@ -215,13 +227,13 @@ function sender_send() {
     var id_app = document.getElementById("apps").value;
     var message_send = $('#message_sender').val();
     
-    document.getElementById("sender_message").setAttribute("disabled", "disabled");
+    //document.getElementById("sender_message").setAttribute("disabled", "disabled");
     document.getElementById("message_sender").setAttribute("disabled", "disabled");
     document.getElementById("apps").setAttribute("disabled", "disabled");
     
     if(!id_app)
     {
-        document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+        //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
         document.getElementById("message_sender").removeAttribute("disabled", "disabled");
         document.getElementById("apps").removeAttribute("disabled", "disabled");
         app.showAlert("Вы не выбрали приложение.");
@@ -230,7 +242,7 @@ function sender_send() {
     
     if(!message_send)
     {
-        document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+        //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
         document.getElementById("message_sender").removeAttribute("disabled", "disabled");
         document.getElementById("apps").removeAttribute("disabled", "disabled");
         app.showAlert("Напишите сообщение для отправки уведомления.");
@@ -239,7 +251,7 @@ function sender_send() {
     
     if(message_send.length < 10)
     {
-        document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+        //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
         document.getElementById("message_sender").removeAttribute("disabled", "disabled");
         document.getElementById("apps").removeAttribute("disabled", "disabled");
         app.showAlert("Сообщение должно содержать более 10 символов.");
@@ -262,7 +274,7 @@ function sender_send() {
     
     if(selected_user_send_array[0] == "" && selected_user_send_array[1] == "")
     {
-        document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+        //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
         document.getElementById("message_sender").removeAttribute("disabled", "disabled");
         document.getElementById("apps").removeAttribute("disabled", "disabled");
         app.showAlert("Выберите один из методов отправки!");
@@ -289,8 +301,8 @@ function sender_send() {
             var error = data.error;
             if(data.error == 1)
             {
-                document.getElementById("sender_message").removeAttribute("disabled", "disabled");
-                 document.getElementById("message_sender").removeAttribute("disabled", "disabled");
+                //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+                document.getElementById("message_sender").removeAttribute("disabled", "disabled");
                 document.getElementById("apps").removeAttribute("disabled", "disabled");
                 app.showAlert("Уведомление не отправлено, приложение заблокировано или недоступно!");
             } else
@@ -316,7 +328,7 @@ function sender_send() {
             /*
             if(data.error == -78)
             {
-                document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+                //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
                 document.getElementById("message_sender").removeAttribute("disabled", "disabled");
                 document.getElementById("apps").removeAttribute("disabled", "disabled");
                 app.showAlert("В данный момент идет 'Автоматическая отправка', ждите завершения!.");
@@ -324,8 +336,32 @@ function sender_send() {
             }
             */
             
+            if(data.error == -460) {
+                //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+                document.getElementById("message_sender").removeAttribute("disabled", "disabled");
+                document.getElementById("apps").removeAttribute("disabled", "disabled");
+                app.showAlert(data.message);
+                return;
+            }
+            
+            if(data.error == -459) {
+                //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+                document.getElementById("message_sender").removeAttribute("disabled", "disabled");
+                document.getElementById("apps").removeAttribute("disabled", "disabled");
+                app.showAlert(data.message);
+                return;
+            }
+            
+            if(data.error == -3987) {
+                //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+                document.getElementById("message_sender").removeAttribute("disabled", "disabled");
+                document.getElementById("apps").removeAttribute("disabled", "disabled");
+                app.showAlert(data.message);
+                return;
+            }
+            
             if(data.error == -278) {
-                document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+                //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
                 document.getElementById("message_sender").removeAttribute("disabled", "disabled");
                 document.getElementById("apps").removeAttribute("disabled", "disabled");
                 app.showAlert(data.message);
@@ -334,7 +370,7 @@ function sender_send() {
             
             if(data.error == -9999)
             {
-                document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+                //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
                 document.getElementById("message_sender").removeAttribute("disabled", "disabled");
                 document.getElementById("apps").removeAttribute("disabled", "disabled");
                 app.showAlert(data.message);
@@ -343,7 +379,7 @@ function sender_send() {
             
             if(data.error == -2)
             {
-                document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+                //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
                 document.getElementById("message_sender").removeAttribute("disabled", "disabled");
                 document.getElementById("apps").removeAttribute("disabled", "disabled");
                 app.showAlert("Вы исчерпали лимит Уведомлений на сегодняшний день.");
@@ -352,7 +388,7 @@ function sender_send() {
             
             if(data.error == -3)
             {
-                document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+                //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
                 document.getElementById("message_sender").removeAttribute("disabled", "disabled");
                 document.getElementById("apps").removeAttribute("disabled", "disabled");
                 app.showAlert(data.message);
@@ -361,7 +397,7 @@ function sender_send() {
             
             app.showAlert("Уведомление не отправлено.");
             
-            document.getElementById("sender_message").removeAttribute("disabled", "disabled");
+            //document.getElementById("sender_message").removeAttribute("disabled", "disabled");
             document.getElementById("message_sender").removeAttribute("disabled", "disabled");
             document.getElementById("apps").removeAttribute("disabled", "disabled");
             return;
@@ -405,6 +441,7 @@ function RegisterVisits() {
     $.post(host_server, {
         action: "set_visits_register"
     }, function (data){
+        console.log(data.HTTP_REFERER  + " <<<< " );
         console.log("[APP] Регистрация посещений успешно завершена!");
     });
 }
@@ -622,13 +659,19 @@ function autosendmessage() {
     var url = host_server_js+"/autosendmessage.js";
     $.getScript( url, function() {
         $(function () {
+            auto_select_users = false;
         });
     });
     
-    $('#sender_auto_uids_select').on('click', function(){
-        app.showDialog('Выбираем кому отправить',app.getTemplate('SelectSendUser'),buttons_default);
-        SelectSendUser("autosend");
-    });
+    if(auto_select_users == false) {
+        
+        auto_select_users = true;
+        
+        $('#sender_auto_uids_select').on('click', function(){
+            app.showDialog('Выбираем кому отправить',app.getTemplate('SelectSendUser'),buttons_default);
+            SelectSendUser("autosend");
+        });
+    }
 }
 
 //Добавляем задание
@@ -800,6 +843,33 @@ function list_timezone() {
             });
         });
     });
+}
+
+//Unix Time
+function timeToHuman(unixtime)
+{
+    var theDate = new Date(unixtime * 1000);
+    var dateString = theDate.toGMTString();
+    return dateString;
+ }
+  
+function humanToTime(Year, Month, Day, Hour, Minutes, Second)
+{
+    var humDate = new Date(Date.UTC(Year,
+        (stripLeadingZeroes(Month)-1),
+        stripLeadingZeroes(Day),
+        stripLeadingZeroes(Hour),
+        stripLeadingZeroes(Minutes),
+        stripLeadingZeroes(Second)));
+    return (humDate.getTime()/1000.0);
+}
+
+function stripLeadingZeroes(input)
+{
+    if((input.length > 1) && (input.substr(0,1) == "0"))
+        return input.substr(1);
+    else
+        return input;
 }
 
 function searchText( string, needle ) {
