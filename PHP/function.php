@@ -11,9 +11,9 @@ define ("SSH2_PASSWORD", "");
 function connectDB()
 {
     $hostname = "localhost";
-    $username = "";
-    $password = "";
-    $dbName = "";
+    $username = "vk_app";
+    $password = "gX3BMHbSp1n4Zvln";
+    $dbName = "vk_app";
 
     $mysqli = new mysqli($hostname, $username, $password, $dbName);
     $mysqli->query('SET NAMES "utf8"');
@@ -27,21 +27,6 @@ function connectDB()
 function closeDB($mysqli)
 {
     $mysqli->close();
-}
-
-function time_($time_input)
-{
-    $met = $time_input;
-    $metTS = strtotime($met);
-
-    $sub = $metTS - time();
-    $sub = abs($sub);
-    $days = (int)($sub / (24 * 60 * 60));
-    $hours = (int)(($sub - $days * 24 * 60 * 60) / (60 * 60));
-    $min = (int)(($sub - $days * 24 * 60 * 60 - $hours * 60 * 60) / 60);
-    $sec = $sub - $days * 24 * 60 * 60 - $hours * 60 * 60 - $min * 60;
-
-    return $hours . ":" . $min . ":" . $sec;
 }
 
 function time_2($time_input)
@@ -107,6 +92,24 @@ function convertUrlQuery($query, $search = '&')
     return $params;
 }
 
+function curl_info($url) {
+    $ch = curl_init();
+    $options = array(
+        CURLOPT_URL => $url,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_HEADER => false,
+        CURLOPT_POST => 0,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FRESH_CONNECT => true
+    ); // cURL options
+    curl_setopt_array($ch, $options);
+    
+    $json = curl_exec($ch);
+    curl_close($ch);
+    return $json;
+}
+
 function valid_app($app_id, $social = "vk")
 {
     $status = 1;
@@ -116,14 +119,14 @@ function valid_app($app_id, $social = "vk")
     if($social == "vk")
     {
         //Проверка на валидность приложения
-        $json = file_get_contents("http://vk.com/app" . $app_id);
-    
-        $json = mb_convert_encoding($json, 'HTML-ENTITIES', "windows-1251");
+        $url = "https://vk.com/app".$app_id;
+        $json = curl_info($url);
+        $json = mb_convert_encoding($json, 'utf-8', "windows-1251");
         
         $valid_app_admin_bool = (strpos($json, " was disabled by site administrators."));
         $valid_app_not_download_bool = (strpos($json,
             " has not been uploaded by the user."));
-            
+        
         if ($valid_app_admin_bool == true || $valid_app_not_download_bool == true) {
             $status = 0;
         }
@@ -248,27 +251,46 @@ function title_app($id_app, $uid)
     return $result;
 }
 
-function repetition_app($id_app)
-{
-    $data = false;
+function repetition_data_app($title_app, $id_app, $secret_key, $uid = false) {
+    
+    $data[] = array();
+    
+    $data["status_id_app"] = false;
+    $data["status_title"] = false;
+    $data["status_secret_key"] = false;
+    
     $mysqli = connectDB();
-    $query = "SELECT `list_app` FROM `vk_app_sender_visits`;";
+    $query = "SELECT `title_app`, `list_app`, `list_secret_key`, `uid` FROM `vk_app_sender_visits`;";
     if (mysqli_multi_query($mysqli, $query)) {
         do {
-            /* получаем первый результирующий набор */
+            //получаем первый результирующий набор
             if ($result = mysqli_store_result($mysqli)) {
                 while ($row = mysqli_fetch_row($result)) {
-                    $list_app_ = $row[0];
-
-                    if (isset($list_app_)) {
-                        $count = explode("\r\n", $list_app_);
+                    $title_app_ = $row[0];
+                    $list_app_ = $row[1];
+                    $list_secret_key_app_ = $row[2];
+                    $uid_app_ = $row[3];
+                    
+                    if (isset($title_app_)) {
+                        $count = explode("\r\n", $title_app_);
                         $count = count($count);
-
+                        
+                        $title_app_array = explode("\r\n", $title_app_);
                         $list_app_array = explode("\r\n", $list_app_);
-
+                        $list_secret_key_app_array = explode("\r\n", $list_secret_key_app_);
+                        $uid_app_array = explode("\r\n", $uid_app_);
+                        
                         for ($i = 0; $i < $count; $i++) {
-                            if ("$id_app" == "$list_app_array[$i]") {
-                                $data = true;
+                            if ((strpos($title_app, "$title_app_array[$i]")) !== false) {
+                                $data["status_title"] = true;
+                            }
+                            
+                            if ((strpos($id_app, "$list_app_array[$i]")) !== false) {
+                                $data["status_id_app"] = true;
+                            }
+                            
+                            if ((strpos($secret_key, "$list_secret_key_app_array[$i]")) !== false) {
+                                $data["status_secret_key"] = true;
                             }
                         }
                     }
@@ -278,7 +300,23 @@ function repetition_app($id_app)
         } while (mysqli_more_results($mysqli));
     }
     closeDB($mysqli);
+    
+    return $data;
+}
 
+function repetition_app($id_app, $title = "", $secret_key = "")
+{
+    $data = false;
+    $repetition_data_app = false;
+    
+    if((repetition_data_app($title, $id_app, $secret_key))) {
+        $repetition_data_app_ = repetition_data_app($title, $id_app, $secret_key);
+    }
+    
+    if(isset(data_app($id_app)["id_app"]) && $id_app == data_app($id_app)["id_app"] || $repetition_data_app_ != false && $repetition_data_app_["status_title"]){
+        $data = true;
+    }
+    
     return $data;
 }
 
@@ -895,20 +933,27 @@ function GetDaysBetween($date1 , $date2){
  }
 
 function valid_user_app($id_app, $uid) {
-        $info_app = data_app($id_app);
-        if(isset($info_app["uid_add"]))
-        {
-            $uid_add_app = $info_app["uid_add"];
+    
+    $response["status_remote"] = false;
+    
+    $info_app = data_app($id_app);
+    
+    if(isset($info_app["uid_add"])) {
+        $uid_add_app = $info_app["uid_add"];
+        
+        $info_remote_control_app = repetition_remote_control($uid, $id_app);
+        $uid_remote_control_app = $info_remote_control_app;
+        
+        if($uid == $uid_add_app || $uid_remote_control_app == true) {
+            $response["status"] = 1;
             
-            $info_remote_control_app = repetition_remote_control($uid, $id_app);
-            $uid_remote_control_app = $info_remote_control_app;
-            
-            if($uid == $uid_add_app || $uid_remote_control_app == true) {
-                $response["status"] = 1;
-            } else
-                $response["status"] = 0;
-        } else $response["status"] = 0;
-        return $response;
+            $response["status_remote"] = $uid_remote_control_app;
+        } else {
+            $response["status"] = 0;
+        }
+    } else $response["status"] = 0;
+    
+    return $response;
 }
 
 function selected_send_user($id_app, $count_page, $first) {

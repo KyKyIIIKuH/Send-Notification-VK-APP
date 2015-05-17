@@ -59,7 +59,7 @@ app.run=function(){
         if(control_remote_ == 0)
         {
             var buttons={'delete_app':{label: 'Удалить приложение', callback: function(){
-                app.showConfirm("Вы точно хотите удалить приложение '" + $.trim(vars.app_title_) + "'?", function(result){
+                app.showConfirm("Вы точно хотите удалить приложение <b style='color:red;'>'" + $.trim(vars.app_title_) + "'</b>?", function(result){
                     if(result == true)
                         delete_app();
                 });
@@ -441,7 +441,6 @@ function RegisterVisits() {
     $.post(host_server, {
         action: "set_visits_register"
     }, function (data){
-        console.log(data.HTTP_REFERER  + " <<<< " );
         console.log("[APP] Регистрация посещений успешно завершена!");
     });
 }
@@ -478,6 +477,7 @@ function GetUserApp()
 
 //Сохранение данных
 function SetInfo() {
+    $(".loader_content").css("display", "inline");
     var url = host_server_js+"/SetInfo.js";
     $.getScript( url, function() {
         $(function () {
@@ -512,6 +512,19 @@ function load_visits_app() {
             params(0);
         });
     });
+	
+	load_visits_app_timeout();
+}
+
+function load_visits_app_timeout() {
+	setTimeout(function() {
+		var url = host_server_js+"/load_visits_app.js?";
+		$.getScript( url, function() {
+			$(function () {
+				params(0);
+			});
+		});
+	}, 1000);
 }
 
 //Выбираем последний Select приложений
@@ -744,6 +757,17 @@ function info_user_logs(id, start) {
     $.getScript( url, function() {
         $(function () {
             params(id, start);
+        });
+    });
+}
+
+//Список посетивших Стран
+function get_country_app() {
+    $(".loader_content").css("display", "inline");
+    
+    var url = host_server_js+"/get_country_app.js?";
+    $.getScript( url, function() {
+        $(function () {
         });
     });
 }

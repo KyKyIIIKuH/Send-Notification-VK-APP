@@ -1,4 +1,5 @@
 <div id="loader"><img src="//ploader.ru/vkapp/sender/images/loading.png" alt="" width="600" height="400" border="0" /></div>
+<div class="loader_content"><img src="//ploader.ru/vkapp/group_user_watch/images/loader.gif" alt="" width="100" height="100" border="0" /></div>
 
 <div id="operator"></div>
 <div id="wrapper">
@@ -150,6 +151,7 @@
 <!-- Настройки приложения -->
 <script type="text/html" id="tmplSettingsApp">
 <form role="form" id="formSettingsApp">
+<div class="loader_content"><img src="//ploader.ru/vkapp/group_user_watch/images/loader.gif" alt="" width="100" height="100" border="0" /></div>
 	<input type="hidden" name="id" id="AppId_settings" value="<%- id %>">
     <div class="form-group">
     	<label for="app_title_">Название приложения <small style="color:red;">(обязательно)</small></label>
@@ -394,7 +396,7 @@
                         </tr>
                         <tr>
                             <td style="text-align:center;"><span id="coutry_count"><p><img src='//vk.com/images/upload.gif'/></p></span></td>
-                            <td style="text-align:center;">Скоро</td>
+                            <td style="text-align:center;"><img onclick="javascript:get_country_app();;" style="cursor: pointer;" src="https://ploader.ru/vkapp/sender/images/app_info.png" width="24" height="24"/></td>
                         </tr>
                     </table>
                     <br/>
