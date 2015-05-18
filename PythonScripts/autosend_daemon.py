@@ -10,6 +10,7 @@ import datetime
 import subprocess
 import pytz
 from config import *
+import ast
 
 import sys
 reload(sys)
@@ -23,9 +24,9 @@ import urllib
 import hashlib
 
 DBHOST = "localhost"
-DBUSER = ""
-DBPASS = ""
-DBTABLE = ""
+DBUSER = "vk_app"
+DBPASS = "gX3BMHbSp1n4Zvln"
+DBTABLE = "vk_app"
 
 sCurrent = 0
 
@@ -175,7 +176,11 @@ class AutoSend(threading.Thread):
                         
                         fmt = '%Y-%m-%d %H:%M:%S'
                         today = datetimenow(fmt, "")
+                        today = today.split(" ")
+                        today = today[0].split("-")[2]
                         today_edit = datetimenow(fmt, datetime_start_)
+                        today_edit = today_edit.split(" ")
+                        today_edit = today_edit[0].split("-")[2]
                         
                         timestamp_edit = time.mktime(datetime.datetime.strptime(datetime_start_, fmt).timetuple())
                         timestamp_new = int(timestamp_now) - int(timestamp_edit)
@@ -188,7 +193,7 @@ class AutoSend(threading.Thread):
                         min_l = int(test2.strftime("%M"))
                         sec_l = int(test2.strftime("%S"))
                         
-                        if today_edit == today or int(hour_l) <= 2 and int(min_l) <= 50 and int(sec_l) <= 59:
+                        if int(today_edit) == int(today) and int(hour_l) <= 2 and int(min_l) <= 50 and int(sec_l) <= 59:
                             print "========ACTION PROGRESS=========="
                             print "LINE: " +str(line_)
                             print "ID APP: " +str(id_app_)
@@ -208,16 +213,35 @@ class AutoSend(threading.Thread):
                                         method = "POST"
                                         params = {
                                             "action": "set_sender_list",
+                                            "auth_key": ""+str(computeMD5hash(str(id_app_)+"_"+str(uid_)+"_"+str(secret_key_app_)))+"",
                                             "viewer_id": ""+str(uid_)+"",
                                             "app_id": ""+str(id_app_)+""
                                         }
                                         [content, response_code] = fetch_url(url, params, method)
                                         
                                         time.sleep(5)
-                                        subprocess.Popen(cmd, shell = True)
+                                        subprocess.Popen(['/home/kykyiiikuh/control_daemon', 'restart'],stdin=subprocess.PIPE)
                                         break
                                     else:
                                         result_procent = (100 * sCurrent / sFinish)
+                                        
+                                        #Valid APP  Key
+                                        url = url_server
+                                        method = "POST"
+                                        params = {
+                                            "action": "valid_app_key_",
+                                            "auth_key": ""+str(computeMD5hash(str(id_app_)+"_"+str(uid_)+"_"+str(secret_key_app_)))+"",
+                                            "viewer_id": ""+str(uid_)+"",
+                                            "app_id": ""+str(id_app_)+"",
+                                        }
+                                        [content, response_code] = fetch_url(url, params, method)
+                                        content = ast.literal_eval(content)
+                                        #print content
+                                        if(int(content["valid_secure_key"]) == 0):
+                                            print "Invalid APP Key"
+                                            time.sleep(15)
+                                            subprocess.Popen(['/home/kykyiiikuh/control_daemon', 'restart'],stdin=subprocess.PIPE)
+                                            break
                                         
                                         ##
                                         url = url_server
@@ -232,6 +256,7 @@ class AutoSend(threading.Thread):
                                             "fromid": ""+str(sCurrent)+""
                                         }
                                         [content, response_code] = fetch_url(url, params, method)
+                                        content = ast.literal_eval(content)
                                         
                                         print "\n\n\n=================="
                                         print str(content) + " \n || <<<< || \n" + str(response_code)
