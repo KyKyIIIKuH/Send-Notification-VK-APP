@@ -24,16 +24,16 @@ import urllib
 import hashlib
 
 DBHOST = "localhost"
-DBUSER = "vk_app"
-DBPASS = "gX3BMHbSp1n4Zvln"
-DBTABLE = "vk_app"
+DBUSER = ""
+DBPASS = ""
+DBTABLE = ""
 
 sCurrent = 0
 
 query0 = "SET NAMES `utf8`"
 query1 = "SELECT * FROM `vk_app_sender_autosend` WHERE `status`='0' ORDER BY `id` ASC;"
 
-cmd = 'sudo /home/kykyiiikuh/control_daemon restart& 2>&1'
+cmd = 'sudo /home/control_daemon restart& 2>&1'
 
 url_server = "http://ploader.ru/sender/api/load.html";
 

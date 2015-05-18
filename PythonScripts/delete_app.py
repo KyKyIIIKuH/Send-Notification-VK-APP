@@ -15,12 +15,12 @@ import time
 
 import logging
 now = time.localtime()
-logging.basicConfig(filename='/var/www/kykyiiikuh/data/PythonScripts/vkapp/sender/delete_app_'+str(now.tm_mon)+"-"+str(now.tm_mday)+'.log',level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='/var/www/data/PythonScripts/vkapp/sender/delete_app_'+str(now.tm_mon)+"-"+str(now.tm_mday)+'.log',level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 DBHOST = "localhost"
-DBUSER = "vk_app"
-DBPASS = "gX3BMHbSp1n4Zvln"
-DBTABLE = "vk_app"
+DBUSER = ""
+DBPASS = ""
+DBTABLE = ""
 
 url_server = "https://ploader.ru/sender/api/load.html";
 
