@@ -9,11 +9,12 @@ header('charset=UTF-8;');
 header('P3P: CP="NOI ADM DEV PSAi COM NAV OUR OTRo STP IND DEM"');
 header('Access-Control-Allow-Origin: *');
 
-//ini_set('date.timezone', 'Europe/Moscow');
+//ini_set('date.timezone', TIMEZONESERVER);
 
 
 define('ROOT_DIR', dirname(__file__));
 require_once ROOT_DIR . '/../modules/vkapi.class.php';
+require_once ROOT_DIR . '/../modules/vkapi_curl.class.php';
 require_once ROOT_DIR . '/../modules/odnoklassniki_sdk.php';
 require_once ROOT_DIR . '/../modules/simple_html_dom.php';
 require_once ROOT_DIR . '/function.php';
@@ -24,7 +25,6 @@ if (isset($_GET["TEST"])) {
     
     ini_set('display_errors', 1);
     error_reporting(E_ALL);
-    
     return;
 }
 
@@ -145,10 +145,21 @@ if (isset($_POST["action"])) {
                     if ($social == "vk") {
                         usleep(500);
                         $VK = new vkapi(IDAPP, SECRETKEY);
+                        
+                        /*
                         $resp = $VK->api('users.get', array('user_ids' => $uid, 'fields' => 'first_name, last_name'));
                         $xml = simplexml_load_string($resp);
                         foreach ($xml->user as $movie) {
                             $name_ = $movie->last_name . " " . $movie->first_name;
+                        }
+                        */
+                        
+                        $resp = $VK->api('users.get', array('user_ids' => AUTORIDVK, 'fields' => 'first_name, last_name'));
+                        $resp = json_encode($resp);
+                        $xml = json_decode($resp, true);
+                        
+                        foreach ($xml as $movie) {
+                            $name_ = $movie[0]["last_name"] . " " . $movie[0]["first_name"];
                         }
                     }
                     
@@ -614,12 +625,16 @@ if (isset($_POST["action"])) {
             return;
         }
         
-        if (!check_secure_key($id_app, "".data_app($id_app)["list_secret_key_app"]."")) {
-            $response["status"] = 0;
-            $response["error"] = -460;
-            $response["message"] = "В настройках приложения введен неверный 'Защищённый ключ'!";
-            echo json_encode($response);
-            return;
+        $first = (int)$_POST['fromid'];
+        
+        if($first == 0) {
+            if (!check_secure_key($id_app, "".data_app($id_app)["list_secret_key_app"]."")) {
+                $response["status"] = 0;
+                $response["error"] = -460;
+                $response["message"] = "В настройках приложения введен неверный 'Защищённый ключ'!";
+                echo json_encode($response);
+                return;
+            }
         }
         
         //
@@ -704,7 +719,7 @@ if (isset($_POST["action"])) {
             
             $old = $start + ($load_second);
             $real_time = time();
-    
+            
             if ($real_time > $old) {
                 $mysqli = connectDB();
                 $row_hash = $mysqli->query("SELECT `hash` FROM `vk_app_sender_list` WHERE `app_id`='" . $id_app . "' AND `status`='0' ORDER BY `id` DESC;");
@@ -721,8 +736,7 @@ if (isset($_POST["action"])) {
         
         /****************** Progress ***************************/
         $mysqli = connectDB();
-        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE `id_app`='" .
-            $id_app . "';");
+        $row1 = $mysqli->query("SELECT COUNT(id) as count FROM `vk_app_all_visits` WHERE `id_app`='" . $id_app . "';");
         $row2 = $row1->fetch_assoc();
         $count_sFinish = $row2["count"];
         closeDB($mysqli);
@@ -891,12 +905,17 @@ if (isset($_POST["action"])) {
             
             /*********************/
             
-            $VK = new vkapi($id_app_select, "" . $secret_key_app_select . "");
-            $resp = $VK->api('secure.sendNotification', array('user_ids' => "" . $userids . "", 'message' => "" . $message_send . ""));
-            $dom = new domDocument;
-            $dom->loadXML($resp);
-
-            if (!$dom) {
+            $VK = new vkapi2($id_app_select, "" . $secret_key_app_select . "");
+            $resp = $VK->api2('secure.sendNotification', array('user_ids' => "" . $userids . "", 'message' => "" . $message_send . ""), 1);
+            $resp2 = $resp;
+            
+            //$dom = new domDocument;
+            //$dom->loadXML($resp);
+            
+            $resp = json_encode($resp);
+            $dom = json_decode($resp, true);
+            
+            if (!isset($resp)) {
                 $response["status"] = 0;
                 $response["error"] = -9999;
                 $response["message"] = 'Error while parsing the document';
@@ -905,7 +924,7 @@ if (isset($_POST["action"])) {
             }
             
             $response["error"] = 0;
-
+            
             $mysqli = connectDB();
             $mysqli->query("UPDATE `vk_app_sender_logs` SET `log`='" . $resp .
                 "' WHERE `uid`='" . $uid . "' AND `app_id`='" . $id_app_select . "' AND `hash`='" . $hash_sender_ .
@@ -1006,7 +1025,7 @@ if (isset($_POST["action"])) {
         
         if (!check_secure_key($app_id_new, "{$key_app}")) {
             $response["valid_secure_key"] = 0;
-            $response["message"] = "Вы ввели неверный Защищённый ключ!";
+            $response["message"] = "Вы ввели неверный Защищённый ключ! ";
             echo json_encode($response);
             return;
         }
@@ -1122,7 +1141,7 @@ if (isset($_POST["action"])) {
         $response["response"] = array();
         while ($row = $result->fetch_assoc()) {
             
-            $post["datetime"] = time_correction($row["datetime"], "Europe/Moscow", $timezone_);
+            $post["datetime"] = time_correction($row["datetime"], TIMEZONESERVER, $timezone_);
             $post["message"] = $row["message"];
             if ($row["type"] == 1)
                 $type_send_ = "<span class=\"label label-primary\" rel=\"tooltip\" data-toggle=\"tooltip\" data-placement=\"left\" title=\"Ручная отправка\">Р</span>";
@@ -1132,14 +1151,16 @@ if (isset($_POST["action"])) {
             $post["info_sender"] =
                 '<img id="info_sender_" onclick="javascript:app.showDialog(\'Информация о уведомлении\',app.getTemplate(\'InfoSenderSelect\'),buttons_default);setTimeout(function() { info_sender(' .
                 $row["id"] . '); }, 700);;" style="cursor: pointer;" src="//ploader.ru/vkapp/sender/images/app_info.png" width="24" height="24" rel="tooltip" data-toggle="tooltip" data-placement="left" title="Информация о уведомлении" />';
-
+            
+            /*
             $response_send_list = inform_select_send($app_id, $row["id"]);
             $valid_error = (strpos($response_send_list["log"], "<error>"));
             if ($valid_error)
                 $post["delete_sender"] =
                     '<img id="delete_sender_" onclick="javascript:;" style="cursor: pointer;" src="//ploader.ru/vkapp/sender/images/delete.png" title="Удалить">';
             else
-                $post["delete_sender"] = 0;
+            */
+            $post["delete_sender"] = 0;
             array_push($response["response"], $post);
         }
         closeDB($mysqli);
@@ -1221,7 +1242,7 @@ if (isset($_POST["action"])) {
                             $title_country = $row1_active["title"];
                         }
                         
-                        $post["datetime"] = time_correction($date_, "Europe/Moscow", $timezone_);
+                        $post["datetime"] = time_correction($date_, TIMEZONESERVER, $timezone_);
                         $post["visits"] = ($visits_ != 0 ? $visits_ : 1);
                         $post["info_user_logs"] =
                                 '<img id="info_user_logs_" onclick="javascript:app.showDialog(\'Информация о посещениях пользователя\',app.getTemplate(\'InfoUserLogSelect\'),buttons_default);setTimeout(function() { info_user_logs(' .
@@ -1459,7 +1480,7 @@ if (isset($_POST["action"])) {
                         else
                             $status_ = 1;
                         
-                        $datetime_start_ = time_correction($datetime_start_, "Europe/Moscow", $timezone_);
+                        $datetime_start_ = time_correction($datetime_start_, TIMEZONESERVER, $timezone_);
                         
                         $post["id"] = $id_;
                         $post["message"] = $message_;
@@ -1501,7 +1522,7 @@ if (isset($_POST["action"])) {
         $message_ = strip_tags($_POST["message"]);
         $datetime_ = $_POST["datetime"];
         
-        $datetime_ = time_correction($datetime_, $timezone_, "Europe/Moscow");
+        $datetime_ = time_correction($datetime_, $timezone_, TIMEZONESERVER);
         
         $useruids_ = "NULL";
         
@@ -1528,7 +1549,7 @@ if (isset($_POST["action"])) {
         echo json_encode($response);
         return;
 */        
-        //$datetime_real = strtotime(time_correction(date("Y-m-d H:i:s"), "Europe/Moscow", $timezone_));
+        //$datetime_real = strtotime(time_correction(date("Y-m-d H:i:s"), TIMEZONESERVER, $timezone_));
         
         //date_default_timezone_set($timezone_);
         //$datetime_old = date("Y-m-d H:i:s");
@@ -1768,7 +1789,7 @@ if (isset($_POST["action"])) {
                         } else
                             $status_ = "Выполнено";
                         
-                        $datetime_start_ = time_correction($datetime_start_, "Europe/Moscow", $timezone_);
+                        $datetime_start_ = time_correction($datetime_start_, TIMEZONESERVER, $timezone_);
                         
                         $post["datetime"] = $datetime_start_;
                         $post["progress"] = $progress_;
@@ -1841,7 +1862,7 @@ if (isset($_POST["action"])) {
 
         while ($row = $result->fetch_assoc()) {
             
-            $post["datetime"] = time_correction($row["date"], "Europe/Moscow", $timezone_);
+            $post["datetime"] = time_correction($row["date"], TIMEZONESERVER, $timezone_);
             array_push($response["response"], $post);
         }
 
@@ -1959,12 +1980,6 @@ if (isset($_POST["action"])) {
     
     if ($action == "datetime_load") {
         
-        $mysqli = connectDB();
-        $row_active = $mysqli->query("SELECT `utc` FROM `vk_app_sender_visits` WHERE `uid`='" . $uid . "';");
-        $row1_active = $row_active->fetch_assoc();
-        $timezone_ = $row1_active["utc"];
-        closeDB($mysqli);
-        
         date_default_timezone_set($timezone_);
         
         $response["datetime"] = date("Y-m-d H:i:s");
@@ -2062,13 +2077,11 @@ if (isset($_POST["action"])) {
     
     if($action == "valid_app_key_") {
         $response["valid_secure_key"] = 1;
-        $data = data_app($id_app);
+        $data_ = data_app($id_app);
         
-        if (!check_secure_key($id_app, "{$data["list_secret_key_app"]}")) {
+        if (!check_secure_key($id_app, "{$data_["list_secret_key_app"]}")) {
             $response["valid_secure_key"] = 0;
             $response["message"] = "Вы ввели неверный Защищённый ключ!";
-            echo json_encode($response);
-            return;
         }
         
         echo json_encode($response);
@@ -2082,6 +2095,10 @@ if (isset($_POST["action"])) {
         $valid_app_bool = (strpos($url_app, "NULL"));
         
         if(isset($url_app) && $valid_app_bool !== 0) {
+            curl_info("https://".$url_app);
+            curl_info("https://".$url_app);
+            curl_info("https://".$url_app);
+            
             if(curl_info("https://".$url_app)) {
                 $valid_app_social_iframe = 1;
             } else {

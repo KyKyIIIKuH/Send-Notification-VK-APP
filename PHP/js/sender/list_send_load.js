@@ -12,6 +12,14 @@ $(function()
         action: "load_list_send_",
         app_id: document.getElementById("apps").value
         }, function (data_list_send_){
+            setInterval(function() {
+                var url = host_server_js+"/block_sender.js?";
+                $.getScript( url, function() {
+                    $(function () {
+                    });
+                });
+            }, 1500);
+            
             var grCount = data_list_send_.count;
             
             $("#send_list_app_").html('<table width="100%" border=1><tr><td>#</td><td>Дата отправки</td><td width="60%" colspan="4">Сообщение</td></tr>');
@@ -54,4 +62,5 @@ $(function()
             $("#send_list_app_").html($("#send_list_app_").html() + "</table>");
             console.log("Список отправленных уведомлений успешно загружены!");
         });
+        
 });

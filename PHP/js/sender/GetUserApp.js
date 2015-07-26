@@ -1,11 +1,9 @@
-function params(start) {
+function params_GetUserApp(start) {
     
     //document.getElementById("block_users").style.display = '';
     document.getElementById("search_user").style.display = '';
     
     var userarraydata;
-    
-    //$('#user_list').html("<p><img src='//vk.com/images/upload.gif'/></p>");
     
     $('#count_users_all').html("<p><img src='//vk.com/images/upload.gif'/></p>");
     
@@ -48,8 +46,20 @@ function params(start) {
             gRCountUserDayVisit = "<span style='color:green;'>+"+gRCountUserDayVisit+"</span>";
         else
             gRCountUserDayVisit = "";
-            
-        $('#count_users_all').html(gRCount + gRCountUserDayVisit);
-        console.log("[APP] Список пользователей посетивших приложение загружен!");
+        
+        //sessionStorage
+    	var isgRCount = sessionStorage.getItem("gRCount");
+        
+    	if(isgRCount == null || isgRCount == 'undefined') {
+    	   if(parseInt(isgRCount) == parseInt(gRCount)) {
+    	       return
+           }
+    	}
+        
+//        if(parseInt(isgRCount) != parseInt(gRCount)) {
+            sessionStorage.setItem("gRCount", gRCount);
+            $('#count_users_all').html(gRCount + gRCountUserDayVisit);
+            console.log("[APP] Список пользователей посетивших приложение загружен!");
+//        }
     });
 }

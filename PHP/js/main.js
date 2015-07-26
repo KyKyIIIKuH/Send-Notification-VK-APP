@@ -1,13 +1,7 @@
 
-$(document).ready(function(){
-    register_visits();
-});
-
 //Регистрируем посещения приложения
-function register_visits() {
-    jQuery.ajax({
-        type: "POST",
-        url: "//ploader.ru/sender/api/load.html",
-        data: { action: "set_visits_register"}
-    });
-}
+$.post("//ploader.ru/sender/api/load.html", {
+    action: "set_visits_register"
+}, function (data){
+    console.log("[APP] Регистрация посещений успешно завершена!");
+});

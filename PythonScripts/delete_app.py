@@ -15,12 +15,12 @@ import time
 
 import logging
 now = time.localtime()
-logging.basicConfig(filename='/var/www/data/PythonScripts/vkapp/sender/delete_app_'+str(now.tm_mon)+"-"+str(now.tm_mday)+'.log',level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='/var/www/kykyiiikuh/data/PythonScripts/vkapp/sender/delete_app_'+str(now.tm_mon)+"-"+str(now.tm_mday)+'.log',level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 DBHOST = "localhost"
-DBUSER = ""
-DBPASS = ""
-DBTABLE = ""
+DBUSER = "vk_app"
+DBPASS = "gX3BMHbSp1n4Zvln"
+DBTABLE = "vk_app"
 
 url_server = "https://ploader.ru/sender/api/load.html";
 
@@ -89,7 +89,7 @@ try:
                 time.sleep(1)
                 content = curl(id_app_, uid_, secret_key_app_)
                 print str(content)
-                logging.info( str(content) )
+                logging.info( str(id_app_) + " > " + str(content) )
                 
                 if( str('valid_app_social' in content) == "True"):
                     if(int(content["valid_app_social"]) == 0):
@@ -109,19 +109,19 @@ try:
                         logging.info('==================')
                         logging.info("\n")
                         
-                        url = url_server
+#                        url = url_server
                         method = "POST"
                         params = {
-                            "action": "delete_app",
+                            "action": "delete_app2",
                             "auth_key": ""+str(computeMD5hash(str(id_app_)+"_"+str(uid_)+"_"+str(secret_key_app_)))+"",
                             "viewer_id": ""+str(uid_)+"",
                             "app_id": ""+str(id_app_)+""
                         }
-                        [content, response_code] = fetch_url(url, params, method)
-                        content = ast.literal_eval(content)
+#                        [content, response_code] = fetch_url(url, params, method)
+#                        content = ast.literal_eval(content)
                         print "DELETE:\n"
                         logging.info( "DELETE:\n" )
-                        print content
+#                        print content
                     time.sleep(1)
             time.sleep(1)
     con.close()

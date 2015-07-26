@@ -27,7 +27,7 @@ function params(app_id, category) {
                 }
             } else {
                     document.getElementById("static_app").style.display = '';
-                    document.getElementById("info_app").style.display = '';
+                    //document.getElementById("info_app").style.display = '';
                     //document.getElementById("block_users").style.display = '';
                     document.getElementById("search_user").style.display = '';
                     document.getElementById("info_send_list").style.display = '';
@@ -37,15 +37,60 @@ function params(app_id, category) {
             
             if(data25.status == 1)
             {
+                /*
+                //console.log(data25.iframe_url);
+                
+                if(data25.iframe_url == null) {
+                    if(script_register == false) {
+                        script_register = true;
+                        //console.log("BLOCK");
+                        //app.showAlert("Скрипт регистрации посещений не установлен!. <br/> Для установки зайдите в раздел '<b>Код для вставки</b>'.");
+                    }
+                }
+                */
+                
                 if(data25.app_id == undefined)
                 {
                     control_remote_ = 1;
                     document.getElementById("settings_app_").style.display = 'none';
+                    
+                    if(vk_valid_app == false) {
+                        if(data25.valid_app_social == 0) {
+                            vk_valid_app = true;
+                            app.showAlert("[VK] Данное приложение Удалено/Заблокировано.");
+                        }
+                    }
                 }
                 else
                 {
                     control_remote_ = 0;
                     document.getElementById("settings_app_").style.display = '';
+                    
+                    //Проверяем состояние приложения
+                    if(vk_valid_app == false) {
+                        if(data25.valid_app_social == 0) {
+                            
+                            vk_valid_app = true;
+                            
+                            var sel = document.getElementById('apps');
+                            var val = $("#apps").val();
+                            var apptitle;
+                            
+                            for(var i = 0, j = sel.options.length; i < j; ++i) {
+                                var sel2 = sel.options[i].value;
+                                
+                                if(searchText(sel2, val) === true) {
+                                    apptitle = sel.options[i].text;
+                                    break;
+                                }
+                            }
+                            
+                            app.showConfirm("[VK] Данное приложение Удалено/Заблокировано.<br/>Удалить приложение '" + $.trim( apptitle ) + "'?", function(result){
+                                if(result == true)
+                                delete_app();
+                            });
+                        }
+                    }
                 }
                 
                 vars={

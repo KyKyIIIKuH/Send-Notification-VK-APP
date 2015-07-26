@@ -32,12 +32,20 @@ $(function()
             if(data.valid_app == 0)
             {
                 app.showAlert("Приложение с таким ID не существует!");
+                $(".loader_content").css("display", "none");
                 return;
             }
             
             if(data.valid_secure_key == 0)
             {
                 app.showAlert(data.message);
+                $(".loader_content").css("display", "none");
+                return;
+            }
+            
+            if(data.status == "-777") {
+                app.showAlert(data.message);
+                $(".loader_content").css("display", "none");
                 return;
             }
             
@@ -55,6 +63,8 @@ $(function()
             }
             else if(data.status == "0")
                 app.showAlert("УПС ошибка доступа");
+            
+            $(".loader_content").css("display", "none");
         });
     } else
         app.showAlert("Введите Данные!");

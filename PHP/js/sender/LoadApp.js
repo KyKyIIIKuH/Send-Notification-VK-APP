@@ -41,8 +41,12 @@ $(function()
             $('#loading_list_app').html(null);
             fisrt_start();
             select_get_app();
-        } else {            
+        } else {
             $("#apps").append($('<option>', {value:"0", text: "Нет добавленных приложений", disabled: true, selected: true}));
+            
+            if(data.banned == 1 && data.status == 0) {
+                app.showAlert("<p><b>Причина блокировки:</b></p> " + data.message);
+            }
             
             console.log("[APP] У пользователя нет добавленных приложений!");
             

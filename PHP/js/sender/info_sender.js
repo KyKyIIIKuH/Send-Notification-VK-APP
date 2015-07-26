@@ -15,6 +15,7 @@ function params(id) {
         app_id: document.getElementById("apps").value,
         send_id: id
         }, function(data) {
+            console.log( data );
             var grCount = data.count;
             
             if(grCount == 0)

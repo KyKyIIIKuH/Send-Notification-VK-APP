@@ -3,7 +3,7 @@ $(function()
 {
     $.post(host_server, {
         action: "get_selected_app"
-    }, function (data){
+    }, function (data){    
         if(data.status == 0)
             return;
         

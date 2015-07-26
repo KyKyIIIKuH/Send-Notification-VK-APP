@@ -21,18 +21,21 @@
 }
 
 .loader_content {
-	width: 100%; 
+	width: 100%;
 	height: 100%; 
 	position: fixed; 
 	text-align: center; 
     display:none;
 	left: 0px; 
-	top: 30%; 
+	top: 0%; 
+    z-index: 9000; 
+    opacity: 0.5;
+    background-color: #000;
 }
 
 .loader_content img{
-    display:inline-block;
-	left: 20%; 
+    position: fixed; 
+	left: 50%; 
 	top: 20%; 
 	margin: -40px 0 0 -40px;
 }

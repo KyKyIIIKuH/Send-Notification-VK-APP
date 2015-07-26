@@ -22,9 +22,9 @@ sCurrent = 0
 
 hash_db = 0
 
-user_db = ""
-passwd_db = ""
-db_ = ""
+user_db = "vk_app"
+passwd_db = "gX3BMHbSp1n4Zvln"
+db_ = "vk_app"
 
 print "Script Start"
 

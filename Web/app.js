@@ -409,7 +409,7 @@ function onAjaxSuccess()
 {
     var sPosition = sCurrent + 100;
     sCurrent = sPosition;
-    setTimeout(sender_send, 1500);
+    setTimeout(sender_send, 2100);
 }
 
 //Выбрали приложение убираем блокировку с input полей
@@ -470,7 +470,7 @@ function GetUserApp()
     var url = host_server_js+"/GetUserApp.js?";
     $.getScript( url, function() {
         $(function () {
-            params(0);
+            params_GetUserApp(0);
         });
     });
 }

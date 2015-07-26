@@ -41,7 +41,7 @@ def days_had_passed(t1, t2):
 
 def delete_user(id):
 	try:
-		con = MySQLdb.connect(host="localhost", user="", passwd="", db="")
+		con = MySQLdb.connect(host="localhost", user="vk_app", passwd="gX3BMHbSp1n4Zvln", db="vk_app")
 		cur = con.cursor()
 		cur.execute('SET NAMES `utf8`')
 		cur.execute("DELETE FROM `vk_app_all_visits` WHERE `id`='"+str(id)+"';")
@@ -51,7 +51,7 @@ def delete_user(id):
 
 def delete_user_logs(id_app, uid):
 	try:
-		con = MySQLdb.connect(host="localhost", user="", passwd="", db="")
+		con = MySQLdb.connect(host="localhost", user="vk_app", passwd="gX3BMHbSp1n4Zvln", db="vk_app")
 		cur = con.cursor()
 		cur.execute('SET NAMES `utf8`')
 		cur.execute("DELETE FROM `vk_app_all_visits_logs` WHERE `id_app`='"+str(id_app)+"' AND `id_vk`='"+str(uid)+"';")
@@ -75,7 +75,7 @@ def datetimenow(fmt, time):
 
 def load_users():    
     try:
-        con = MySQLdb.connect(host="localhost", user="", passwd="", db="")
+        con = MySQLdb.connect(host="localhost", user="vk_app", passwd="gX3BMHbSp1n4Zvln", db="vk_app")
         cur = con.cursor()
         cur.execute('SET NAMES `utf8`')
         cur.execute('SELECT `id`, `date`, `id_app`, `id_vk` FROM `vk_app_all_visits` ORDER BY `id` ASC')

@@ -11,11 +11,15 @@ function params(start) {
         $("#send_visits_app_ > tr:last").append('<td colspan="6"><p><img src="//vk.com/images/upload.gif"/></p></td>');
     }
     
+    console.log( document.getElementById("apps").value );
+    
     $.post(host_server, {
         action: "load_visits_app",
         app_id: document.getElementById("apps").value,
         start: start
     }, function (data){
+        //$("#send_visits_app_").html("");
+        
         var grCount = data.count;
         var gRUsersUID = data.userids;
         

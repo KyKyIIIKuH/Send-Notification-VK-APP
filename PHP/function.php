@@ -1,5 +1,7 @@
 <?
 
+define ("TIMEZONESERVER", "Europe/Moscow");
+
 define ("IDAPP", "");
 define ("SECRETKEY", "");
 define ("AUTORIDVK", "");
@@ -11,9 +13,9 @@ define ("SSH2_PASSWORD", "");
 function connectDB()
 {
     $hostname = "localhost";
-    $username = "vk_app";
-    $password = "gX3BMHbSp1n4Zvln";
-    $dbName = "vk_app";
+    $username = "";
+    $password = "";
+    $dbName = "";
 
     $mysqli = new mysqli($hostname, $username, $password, $dbName);
     $mysqli->query('SET NAMES "utf8"');
@@ -31,7 +33,7 @@ function closeDB($mysqli)
 
 function time_2($time_input)
 {
-    date_default_timezone_set("Europe/Moscow");
+    date_default_timezone_set(TIMEZONESERVER);
     
     $met = $time_input;
     $metTS = strtotime($met);
@@ -764,14 +766,18 @@ function testi($id_app)
 function check_secure_key($app_id, $secure_key, $social = 'vk')
 {
     $data = false;
-    $name_ = "";
+    $name_ = null;
+    
     if($social == "vk") {
-        $VK = new vkapi("{$app_id}", "{$secure_key}");
-        $resp = $VK->api('users.get', array('user_ids' => AUTORIDVK, 'fields' =>
-                'first_name, last_name'));
-        $xml = simplexml_load_string($resp);
-        foreach ($xml->user as $movie) {
-            $name_ = $movie->last_name . " " . $movie->first_name;
+        $VK = new vkapi2("{$app_id}", "{$secure_key}");
+        $resp = $VK->api2('users.get', array('user_ids' => AUTORIDVK, 'fields' => 'first_name, last_name'), 1);
+        $resp = json_encode($resp);
+        $xml = json_decode($resp, true);
+        
+        foreach ($xml as $movie) {
+            if(!isset($movie["error_msg"])) {
+                $name_ = $movie[0]["last_name"] . " " . $movie[0]["first_name"];
+            }
         }
     }
     
@@ -779,10 +785,10 @@ function check_secure_key($app_id, $secure_key, $social = 'vk')
         $name_ = "42424";
     }
     
-    if ($name_) {
+    if (isset($name_)) {
         $data = true;
     }
-
+    
     return $data;
 }
 
@@ -840,6 +846,8 @@ function valid_hash($uid, $name_, $social = "vk")
 
 function inform_select_send($app_id, $send_id)
 {
+    //echo "\n 11 \n";
+    //echo "SELECT `datetime`, `message`, `hash` FROM `vk_app_sender_list` WHERE `app_id`='" . $app_id . "' AND `id`='" . $send_id . "';";
     $mysqli = connectDB();
     $row_active = $mysqli->query("SELECT `datetime`, `message`, `hash` FROM `vk_app_sender_list` WHERE `app_id`='" . $app_id . "' AND `id`='" . $send_id . "';");
     $row1_active = $row_active->fetch_assoc();
@@ -847,21 +855,29 @@ function inform_select_send($app_id, $send_id)
     $datetime_ = $row1_active["datetime"];
     $hash_sender_old = $row1_active["hash"];
     closeDB($mysqli);
-
+    
+    //echo "\n 12 \n";
+    
     if (isset($message_) && isset($datetime_) && isset($hash_sender_old)) {
+        
+        //echo "\n 13 \n";
         
         $datetime = date("Y-m-d", strtotime($datetime_));
         $day_next = strtotime($datetime) + (1 * 24 * 60 * 60);
         $datetime_new = date("Y-m-d", $day_next);
         $time_ = date("H", strtotime($datetime_));
         
-        $query = "SELECT `id`, `log` FROM `vk_app_sender_logs` WHERE datetime between '{$datetime} {$time_}' and '{$datetime_new} 00' AND `app_id`='" . $app_id . "'";
+        $query = "SELECT `id`, `log` FROM `vk_app_sender_logs` WHERE datetime between '{$datetime} {$time_}' and '{$datetime_new} 00' AND `hash_list`='".$hash_sender_old."' AND `app_id`='" . $app_id . "'";
+        
+        //echo $query . "\n";
         
         $mysqli = connectDB();
         $row_active = $mysqli->query("SELECT `datetime` FROM `vk_app_sender_logs` WHERE `app_id`='".$app_id."' AND `hash_list`='".$hash_sender_old."' ORDER BY `id` DESC;");
         $row1_active = $row_active->fetch_assoc();
         $d_logs = $row1_active["datetime"];
         closeDB($mysqli);
+        
+        //echo "\n 14 \n";
         
         if($hash_sender_old != NULL && isset($d_logs)) $time_send_old = GetDaysBetween($datetime_, $d_logs); else $time_send_old = "00:00:00";
         
@@ -871,34 +887,42 @@ function inform_select_send($app_id, $send_id)
 
         $userids = "";
         $symbol = "";
-        $loging = "";
+        //$loging = "";
         
         while ($row = $result->fetch_assoc()) {
-
+            
+            //echo "\n 15 \n";
+            
             if ($row["id"]) {
+                //echo "\n 151 \n";
                 if ($userids !== "") {
                     $symbol = ",";
                 }
                 
-                $loging = $row["log"];
+                //$loging = $row["log"];
                 
-                if ($row["log"]) {
-                    $valid_ = (strpos($row["log"], '<?xml version="1.0" encoding="utf-8"?><response/>'));
+                if (isset($row["log"])) {
+                    /*$valid_ = (strpos($row["log"], '<?xml version="1.0" encoding="utf-8"?><response/>'));*/
                     
+                    $resp2 = str_replace("\"{", "{", $row["log"]);
+                    $resp2 = str_replace("}\"", "}", $resp2);
                     
-                    if (!$valid_) {
-                        $resp = $row["log"];
-                        $dom = new domDocument;
-                        $dom->loadXML($resp);
-                        if (!$dom) {
+                    //var_dump(json_decode($resp2));
+                    
+                    $resp2 = json_decode($resp2, true);
+                    
+                    //echo $resp2["response"];
+                    
+                    if (isset($resp2["response"])) {
+                        
+                        if (!isset($resp2["response"])) {
                             echo 'Error while parsing the document';
                             exit;
                         }
-
-                        $info_to_user = simplexml_import_dom($dom);
-
-                        if ($info_to_user) {
-                            $userids = $userids . $symbol . $info_to_user;
+                        
+                        if (isset($resp2["response"])) {
+                            //$resp = json_encode($resp);
+                            $userids = $userids . $symbol . $resp2["response"];
                         }
                     }
                 }
@@ -911,8 +935,12 @@ function inform_select_send($app_id, $send_id)
             $count_send_uid = count($count_send_uid);
         } else
             $count_send_uid = 0;
+                
+        //$response["log"] = $loging;
         
-        $response["log"] = $loging;
+        $response["id_app"] = $app_id;
+        $response["send_id"] = $send_id;
+        
         $response["count"] = $count_send_uid;
         $response["userssend"] = $userids;
         $response["time_send"] = $time_send_old;
