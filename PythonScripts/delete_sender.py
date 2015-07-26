@@ -9,9 +9,9 @@ from time import sleep
 
 import MySQLdb
 
-user_db = "vk_app"
-passwd_db = "gX3BMHbSp1n4Zvln"
-db_ = "vk_app"
+user_db = ""
+passwd_db = ""
+db_ = ""
 
 print "Script Start"
 

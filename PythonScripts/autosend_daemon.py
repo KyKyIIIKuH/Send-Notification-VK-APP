@@ -24,9 +24,9 @@ import urllib
 import hashlib
 
 DBHOST = "localhost"
-DBUSER = "vk_app"
-DBPASS = "gX3BMHbSp1n4Zvln"
-DBTABLE = "vk_app"
+DBUSER = ""
+DBPASS = ""
+DBTABLE = ""
 
 sCurrent = 0
 
