@@ -1,7 +1,7 @@
 //Array.prototype.IS_ARRAY = true;
 
-var host_server = "//ploader.ru/sender/api/load.html", vars;
-var host_server_js = "//ploader.ru/vkapp/sender/js/sender";
+var host_server = "//site.com/sender/api/load.html", vars;
+var host_server_js = "//site.com/vkapp/sender/js/sender";
 var buttons_add_app={'select':{label: 'Закрыть', callback: function(){
 }}}, buttons_sharing_app={'cancel':{label: 'Закрыть', callback: function(){
 }}};
@@ -108,19 +108,29 @@ app.run=function(){
                                     GetInfo($('#apps').val());
                                     
                                     //Сохраняем изменения select app
-                                    $.post(host_server, {
-                                        action: "save_selecet_app",
-                                        id_app: $('#apps').val()
-                                        }, function (data){
+                                    var xmlhttp=new ajaxRequest();
+                                    xmlhttp.open("POST", host_server, true);
+                                    xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+                                    
+                                    xmlhttp.onreadystatechange=function() {
+                                        if(xmlhttp.readyState==4 && xmlhttp.status==200) {
+                                            var data = xmlhttp.responseText;
+                                            data = JSON.parse(data);
                                             
-                                            if(data.status == 0)
-                                            {
+                                            if(data.status == 0) {
                                                 console.log("[APP] Selected Изменения не сохранены");
                                                 return;
                                             }
                                             
                                             console.log("[APP] Selected Изменения сохранены");
-                                        });
+                                            console.log("[APP] Приложение изменено");
+                                            GetInfo();
+                                            GetUserApp();
+                                            //load_visits_app();
+                                        }
+                                    };
+                                    
+                                    xmlhttp.send("action=save_selecet_app&id_app="+$('#apps').val());
                                     console.log("[APP] Приложение изменено");
                                 });
     
@@ -291,6 +301,7 @@ function sender_send() {
         action: "sender_message",
         app_id: id_app,
         message: message_send,
+        type_send: 1,
         fromid: sCurrent,
         category: category_,
         userids: userids
@@ -512,19 +523,6 @@ function load_visits_app() {
             params(0);
         });
     });
-	
-	load_visits_app_timeout();
-}
-
-function load_visits_app_timeout() {
-	setTimeout(function() {
-		var url = host_server_js+"/load_visits_app.js?";
-		$.getScript( url, function() {
-			$(function () {
-				params(0);
-			});
-		});
-	}, 1000);
 }
 
 //Выбираем последний Select приложений
@@ -784,10 +782,10 @@ function delete_sender(id_sender) {
 
 //Выбираем кому отправить уведомление
 function SelectSendUser(type) {
-    var url = "//ploader.ru/vkapp/sender/js/select2/select2.js";
+    var url = "//site.com/vkapp/sender/js/select2/select2.js";
     $.getScript( url, function() {
         $(function () {
-            var url = "//ploader.ru/vkapp/sender/js/select2/select2_locale_ru.js";
+            var url = "//site.com/vkapp/sender/js/select2/select2_locale_ru.js";
             $.getScript( url, function() {
                 $(function () {
                     setTimeout(function () {                        
@@ -841,10 +839,10 @@ function SelectSendUser(type) {
 
 //Список часовых поясов
 function list_timezone() {    
-    var url = "//ploader.ru/vkapp/sender/js/select2/select2.js";
+    var url = "//site.com/vkapp/sender/js/select2/select2.js";
     $.getScript( url, function() {
         $(function () {
-            var url = "//ploader.ru/vkapp/sender/js/select2/select2_locale_ru.js";
+            var url = "//site.com/vkapp/sender/js/select2/select2_locale_ru.js";
             $.getScript( url, function() {
                 $(function () {
                     var url = host_server_js+"/list_timezone.js";
@@ -894,6 +892,25 @@ function stripLeadingZeroes(input)
         return input.substr(1);
     else
         return input;
+}
+
+function ajaxRequest()
+{
+	var am=["Msxml2.XMLHTTP","Microsoft.XMLHTTP"];
+	if(window.ActiveXObject)
+	{
+		for (var i=0;i<am.length;i++)
+		{
+			try
+			{
+				return new ActiveXObject(am[i]);
+			}
+			catch(e){}
+		}
+	}
+	else if(window.XMLHttpRequest)
+		return new XMLHttpRequest();
+	return false;
 }
 
 function searchText( string, needle ) {
