@@ -1,0 +1,4 @@
+RewriteEngine On
+DirectoryIndex index.php
+
+RewriteRule ^sender/api/load.html$ /vkapp/sender/api.php [L]
