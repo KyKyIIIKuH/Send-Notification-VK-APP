@@ -8,6 +8,8 @@ $(function()
     $("#apps").append($('<option>', {value:"0", text: "Мои приложения", disabled: true}));
     
     var gRCount = 0;
+    var load_apps = false;
+    var load_remote_apps = false;
     
     $.post(host_server, {
         action: "get_app_list"
@@ -38,9 +40,8 @@ $(function()
             }
             
             console.log("[APP] Список приложений загружен!");
+            load_apps = true;
             $('#loading_list_app').html(null);
-            fisrt_start();
-            select_get_app();
         } else {
             $("#apps").append($('<option>', {value:"0", text: "Нет добавленных приложений", disabled: true, selected: true}));
             
@@ -55,7 +56,7 @@ $(function()
         
         //Общий Доступ
         if(data.control_remote == 1)
-        {            
+        {
             $("#apps").append($('<option>', {value:"0", text: "Общий доступ", disabled: true}));
             
             var gRCountRemote = data.count_remote_app;
@@ -78,10 +79,9 @@ $(function()
                 
                 $("#apps").append($('<option>', {value:id_app_, text: title_app_}));
             }
-            console.log("[APP] Список приложений загружен!");
+            console.log("[APP] Список приложений общего доступа загружен!");
+            load_remote_apps = true;
             $('#loading_list_app').html(null);
-            fisrt_start();
-            select_get_app();
         }
         
         if(gRCount == 0 && data.control_remote != 1)
@@ -90,6 +90,14 @@ $(function()
             $('#loading_list_app').html(null);
             document.getElementById("added_app_not_function").style.display = '';
 			$('#big_loading').html('');
+        }
+        
+        //Выбираем приложение в котором пользователь находился
+        if(load_apps || load_remote_apps){
+            select_get_app();
+            
+            //document.getElementById("static_app").style.display = '';
+            //document.getElementById("info_visits_list").style.display = '';
         }
     });
 });

@@ -35,7 +35,7 @@ $(function()
         
         if(data.valid_app == 0)
         {
-            app.showAlert("Вы добавляете не существующее приложение.");
+            app.showAlert(data.message);
             return;
         }
         

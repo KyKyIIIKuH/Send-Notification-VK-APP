@@ -57,7 +57,7 @@ function params(app_id, category) {
                     if(vk_valid_app == false) {
                         if(data25.valid_app_social == 0) {
                             vk_valid_app = true;
-                            app.showAlert("[VK] Данное приложение Удалено/Заблокировано.");
+                            app.showAlert(data25.message);
                         }
                     }
                 }
@@ -85,7 +85,7 @@ function params(app_id, category) {
                                 }
                             }
                             
-                            app.showConfirm("[VK] Данное приложение Удалено/Заблокировано.<br/>Удалить приложение '" + $.trim( apptitle ) + "'?", function(result){
+                            app.showConfirm(data25.message + "<br/>Удалить приложение '" + $.trim( apptitle ) + "'?", function(result){
                                 if(result == true)
                                 delete_app();
                             });

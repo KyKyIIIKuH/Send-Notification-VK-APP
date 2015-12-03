@@ -1,8 +1,8 @@
 function params(id, start) {
-    $("#info_user_logs_list").html('<table class="table table-hover" id="info_user_logs_list"><thead><tr><th>#</th><th>Дата/Время посещения</th></tr></thead>');
+    $("#info_user_logs_list").html('<table class="table table-hover" id="info_user_logs_list"><thead><tr><th>#</th><th>Дата/Время посещения</th><th></th></tr></thead>');
     $("#info_user_logs_list").append('<tbody><tr></tr></tbody>');
     for(j=1;j<=1;j++) {
-        $("#info_user_logs_list > tbody > tr:last").append('<td colspan="2"><p><center><img src="//vk.com/images/upload.gif"/></p></center></td>');
+        $("#info_user_logs_list > tbody > tr:last").append('<td colspan="6"><p><center><img src="//vk.com/images/upload.gif"/></p></center></td>');
     }
     $("#info_user_logs_list").html($("#info_user_logs_list").html() + "</table>");
     
@@ -47,13 +47,13 @@ function load(id, start) {
     }, function (data){
         var grCount = data.count;
         
-        $("#info_user_logs_list").html('<table class="table table-hover" id="info_user_logs_list"><thead><tr><th>#</th><th>Дата/Время посещения</th></thead>');
+        $("#info_user_logs_list").html('<table class="table table-hover" id="info_user_logs_list"><thead><tr><th>#</th><th>Дата/Время посещения</th><th></th></thead>');
         
         if(grCount == 0)
         {
             $("#info_user_logs_list").append('<tbody><tr></tr></tbody>');
             for(j=1;j<=1;j++) {
-                $("#info_user_logs_list > tbody > tr:last").append('<td colspan="5" align="center">Информация не найдена!</td>');
+                $("#info_user_logs_list > tbody > tr:last").append('<td colspan="6" align="center">Информация не найдена!</td>');
             }
         }
         
@@ -65,11 +65,13 @@ function load(id, start) {
                 i_new++;
                 
                 var datetime_ = data.response[i].datetime;
+                var browser_ = data.response[i].browser;
                 
                 $("#info_user_logs_list").append('<tbody><tr></tr></tbody>');
                 for(j=1;j<=1;j++) {
                     $("#info_user_logs_list > tbody > tr:last").append('<td>' + i_new + '</td>');
                     $("#info_user_logs_list > tbody > tr:last").append('<td>'+datetime_+'</td>');
+                    $("#info_user_logs_list > tbody > tr:last").append('<td>'+browser_+'</td>');
                 }
             }
         }
