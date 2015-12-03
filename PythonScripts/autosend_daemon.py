@@ -31,15 +31,15 @@ DBTABLE = ""
 sCurrent = 0
 
 query0 = "SET NAMES `utf8`"
-query1 = "SELECT * FROM `vk_app_sender_autosend` WHERE `status`='0' ORDER BY `id` ASC;"
+query1 = "SELECT * FROM `vk_app_sender_autosend` WHERE `status`='0' ORDER BY `datetime_start` ASC;"
 
-cmd = 'sudo /home/kykyiiikuh/control_daemon restart& 2>&1'
+cmd = 'sudo /home/control_daemon restart& 2>&1'
 
-url_server = "http://ploader.ru/sender/api/load.html";
+url_server = "http://site.com/sender/api/load.html";
 
 import logging
 now = time.localtime()
-logging.basicConfig(filename='/var/www/kykyiiikuh/data/PythonScripts/vkapp/sender/autosend_daemon_'+str(now.tm_mon)+"-"+str(now.tm_mday)+'.log',level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='/home/PythonScripts/vkapp/sender/autosend_daemon_'+str(now.tm_mon)+"-"+str(now.tm_mday)+'.log',level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 print "Script Start"
 logging.info("\n")
@@ -120,7 +120,7 @@ def countUserApp(id_app):
         for row in result:
             count_selected = (row[0])
             
-        # con.close()
+        con.close()
     except MySQLdb.Error:
         print(db.error())
     
@@ -148,6 +148,40 @@ def progress_(progress, id_app_db, id_field):
         print(db.error())
 	sleep(1.0)
 
+def load_list(autosendlist):
+    timestamp_now = int(time.time())
+    
+    list_ausend = []
+    for row2 in (autosendlist):
+        fmt = '%Y-%m-%d %H:%M:%S'
+        
+        datetime_start_ = row2["datetime_start"]
+        
+        timestamp_edit = time.mktime(datetime.datetime.strptime(datetime_start_, fmt).timetuple())
+        timestamp_new = int(timestamp_now) - int(timestamp_edit)
+        
+        import datetime as DT
+        timestamp_new2 = datetime.datetime.fromtimestamp(timestamp_new).strftime("%Y-%m-%d %H:%M:%S")
+        test2 = DT.datetime.strptime(timestamp_new2, '%Y-%m-%d %H:%M:%S')
+        test2 = test2 + datetime.timedelta(hours=-3)
+        hour_l = int(test2.strftime("%H"))
+        min_l = int(test2.strftime("%M"))
+        sec_l = int(test2.strftime("%S"))
+        
+        # Выполняем условие по расписанию
+        if int(hour_l) == 0 and int(min_l) == 0 and int(sec_l) == 0:
+            list_ausend.append({
+                "id": row2["id"], 
+                "uid": row2["uid"],
+                "line": row2["line"],
+                "id_app": row2["id_app"],
+                "message": row2["message"],
+                "datetime_start": datetime_start_,
+                "secret_key_app": row2["secret_key_app"]
+            })
+        
+    return list_ausend
+
 class AutoSend(threading.Thread):
     global sCurrent
     
@@ -160,6 +194,7 @@ class AutoSend(threading.Thread):
         global sCurrent
         global cmd
         global url_server
+        global query0
         
         double_run = False
         
@@ -167,17 +202,35 @@ class AutoSend(threading.Thread):
             while self.keep_running:
                 now = time.localtime()
                 
-                if (int(now.tm_hour) == 0 and int(now.tm_min) == 0 and int(now.tm_sec) == 0):
-                    subprocess.Popen(['/home/kykyiiikuh/control_daemon', 'restart'],stdin=subprocess.PIPE)
-                    logging.info( "Restart Daemon" )
-                    break
+                count_ = 0
+                
+                try:
+                    con = MySQLdb.connect(host=""+str(DBHOST)+"", user=""+str(DBUSER)+"", passwd=""+str(DBPASS)+"", db=""+str(DBTABLE)+"")
+                    cur = con.cursor()
+                    cur.execute(str(query0))
+                    cur.execute("SELECT COUNT(id) FROM `vk_app_sender_autosend` WHERE `status`='0';")
+                    result = cur.fetchall()
+                    for row in result:
+                        count_ = row[0]
+                    con.close()
+                except MySQLdb.Error:
+                    print(db.error())
+                
+                if(int(count_) == 0):
+                    if (int(now.tm_hour) == 0 and int(now.tm_min) == 0 and int(now.tm_sec) == 0):
+                        subprocess.Popen(['/home/control_daemon', 'restart'],stdin=subprocess.PIPE)
+                        logging.info( "Restart Daemon" )
+                        break
                 
                 timestamp_now = int(time.time())
                 
                 self.autosendlist = readAutoSend()
                 
                 if(self.autosendlist):
-                    for row2 in (self.autosendlist):
+                    
+                    list_autosend = load_list(self.autosendlist)
+                    
+                    for row2 in (list_autosend):
                         id_ = row2["id"]
                         uid_ = row2["uid"]
                         line_ = row2["line"]
@@ -186,35 +239,18 @@ class AutoSend(threading.Thread):
                         datetime_start_ = row2["datetime_start"]
                         secret_key_app_ = row2["secret_key_app"]
                         
-                        fmt = '%Y-%m-%d %H:%M:%S'
-                        today = datetimenow(fmt, "")
-                        today = today.split(" ")
-                        today = today[0].split("-")[2]
-                        today_edit = datetimenow(fmt, datetime_start_)
-                        today_edit = today_edit.split(" ")
-                        today_edit = today_edit[0].split("-")[2]
-                        
-                        timestamp_edit = time.mktime(datetime.datetime.strptime(datetime_start_, fmt).timetuple())
-                        timestamp_new = int(timestamp_now) - int(timestamp_edit)
-                        
-                        import datetime as DT
-                        timestamp_new2 = datetime.datetime.fromtimestamp(timestamp_new).strftime("%Y-%m-%d %H:%M:%S")
-                        test2 = DT.datetime.strptime(timestamp_new2, '%Y-%m-%d %H:%M:%S')
-                        test2 = test2 + datetime.timedelta(hours=-3)
-                        hour_l = int(test2.strftime("%H"))
-                        min_l = int(test2.strftime("%M"))
-                        sec_l = int(test2.strftime("%S"))
-                        
-                        if int(today_edit) == int(today) and int(hour_l) <= 23 and int(min_l) <= 50 and int(sec_l) <= 59:
+                        if message_:
                             sFinish = int(countUserApp(id_app_))
                             
                             print "========ACTION PROGRESS=========="
+                            print "Line Array: " + str(len(list_autosend))
                             print "LINE: " +str(line_)
                             print "ID APP: " +str(id_app_)
                             print "MESSAGE: " +str(message_)
                             print "DateTimeStart: " +str(datetime_start_)
                             
                             logging.info( "========ACTION PROGRESS==========" )
+                            logging.info( "Line Array: " + str(len(list_autosend)) )
                             logging.info( "LINE: " +str(line_) )
                             logging.info( "ID APP: " +str(id_app_) )
                             logging.info( "MESSAGE: " +str(message_) )
@@ -222,9 +258,7 @@ class AutoSend(threading.Thread):
                             
                             logging.info( "FINISH: " +str(sFinish) )
                             
-                            #Valid APP  Key
-                            time.sleep(2)
-                            
+                            #Valid APP  Key                           
                             url = url_server
                             method = "POST"
                             params = {
@@ -234,27 +268,22 @@ class AutoSend(threading.Thread):
                                 "app_id": ""+str(id_app_)+""
                             }
                             [content, response_code] = fetch_url(url, params, method)
-                            print "}}}}}} ||| " + str(content)
+                            print "Valid Key App Result: " + str(content)
                             content = ast.literal_eval(content)
                             
                             logging.info( "========== valid_key ==========" )
                             logging.info( str(content) )
                             
-                            #print content
-                            if(int(content["valid_secure_key"]) == 0):
+                            loll = "valid_secure_key" not in content
+                            
+                            if(loll):
                                 print "Invalid APP Key"
                                 logging.info( "Invalid APP Key" )
-                                time.sleep(15)
-                                playProcess3 = subprocess.Popen(['/home/kykyiiikuh/control_daemon', 'restart'],stdin=subprocess.PIPE)
-                                time.sleep(5)
-                                playProcess3.terminate()
-                                logging.info( "Restart Daemon" )
-                                break
+                                continue
                             ##
                             
                             if sFinish != 0:
-                                
-                                while True:
+                                while self.keep_running:
                                     if int(sFinish) < int(sCurrent):
                                         result_procent = 100
                                         progress_(result_procent, id_app_, id_)
@@ -271,12 +300,7 @@ class AutoSend(threading.Thread):
                                         }
                                         [content, response_code] = fetch_url(url, params, method)
                                         
-                                        time.sleep(5)
                                         sCurrent = 0
-                                        playProcess3 = subprocess.Popen(['/home/kykyiiikuh/control_daemon', 'restart'],stdin=subprocess.PIPE)
-                                        time.sleep(5)
-                                        playProcess3.terminate()
-                                        logging.info( "Restart Daemon" )
                                         break
                                     else:
                                         result_procent = (100 * sCurrent / sFinish)
@@ -288,34 +312,50 @@ class AutoSend(threading.Thread):
                                             "auth_key": ""+str(computeMD5hash(str(id_app_)+"_"+str(uid_)+"_"+str(secret_key_app_)))+"",
                                             "viewer_id": ""+str(uid_)+"",
                                             "app_id": ""+str(id_app_)+"",
+                                            "message": ""+str(message_)+"",
+                                            "type_send": "0",
                                             "userids":"",
-                                            "category":"",
+                                            "category":"0",
                                             "fromid": ""+str(sCurrent)+""
                                         }
+                                        
+                                        #content = '{"error":1}'
                                         [content, response_code] = fetch_url(url, params, method)
-                                        print " }}}} ||| ))))) " + str(content)
+                                        print "Result Sender Message: " + str(content)
                                         
                                         content = ast.literal_eval(content)
                                         
                                         print "\n=================="
-                                        print str(content) + " \n || <<<< || \n" + str(response_code)
+                                        print str(response_code)
                                         logging.info( "========== sender_message ==========" )
                                         logging.info( str(content) + " \n || <<<< || \n" + str(response_code) )
                                         print "\n"
-                                        ##
                                         
                                         onAjaxSuccess()
                                         time.sleep(2)
                                     
                                     progress_(result_procent, id_app_, id_)
                                     
+                                    if(int(len(load_list(self.autosendlist))) > 0):
+                                        test = load_list(self.autosendlist)
+                                        list_autosend.append(test[len(test)-1])
+                                    
                                     print str(sCurrent)  + " of " + str(sFinish) + " " + str(result_procent)+"%"
+                                    print "ArrayList: " + str(len(list_autosend))
                                     logging.info( "========== info ==========" )
                                     logging.info( str(sCurrent)  + " of " + str(sFinish) + " " + str(result_procent)+"%" )
-                
-                time.sleep(2)
+                                    logging.info( "ArrayList: " + str(len(list_autosend)) )
+                time.sleep(1)
         except Exception, e:
             print str(e)
+            logging.warning( "Error: " + str(e) )
+            
+            time.sleep(15)
+            playProcess3 = subprocess.Popen(['/home/control_daemon', 'restart'],stdin=subprocess.PIPE)
+            time.sleep(5)
+            playProcess3.terminate()
+            logging.info( "Restart Daemon" )
+            
             raise
             # return
     def die(self):
